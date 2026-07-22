@@ -1,0 +1,81 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <!-- Card de Perfil Premium -->
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header border-0 p-5 text-white" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+          <div class="d-flex align-items-center">
+            <div class="avatar-circle me-4">
+              <span class="fs-1 fw-bold text-primary">{{usuario.nombre[0]}}{{usuario.apellido ? usuario.apellido[0] : ""}}</span>
+            </div>
+            <div>
+              <h2 class="fw-bolder mb-0 text-white">{{usuario.nombre}} {{usuario.apellido}}</h2>
+              <span class="badge bg-light text-primary rounded-pill px-3 mt-2">{{usuario.rol}} Oficial</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body p-5 bg-white">
+          <div *ngIf="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+          
+          <div *ngIf="!loading" class="row g-4">
+            
+            <!-- Estadísticas de Impacto -->
+            <div class="col-md-6">
+              <div class="p-4 rounded-4 bg-light border-start border-primary border-4 shadow-sm h-100">
+                <h6 class="text-uppercase text-muted fw-bold small mb-3">Tiempo de Servicio Social</h6>
+                <div class="d-flex align-items-baseline">
+                  <h1 class="display-4 fw-bolder text-dark mb-0">{{usuario.horas_sociales}}</h1>
+                  <span class="ms-2 fw-bold text-secondary">Horas</span>
+                </div>
+                <div class="progress mt-3" style="height: 8px;">
+                  <div class="progress-bar bg-primary" role="progressbar" [style.width.%]="getMetaPercentage()"></div>
+                </div>
+                <small class="text-muted mt-2 d-block">Meta Social: 80 Horas</small>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="p-4 rounded-4 bg-light border-start border-success border-4 shadow-sm h-100">
+                <h6 class="text-uppercase text-muted fw-bold small mb-3">Programas Inscritos</h6>
+                <h1 class="display-4 fw-bolder text-dark mb-0">{{misProgramas.length}}</h1>
+                <small class="text-muted mt-2 d-block">
+                  <span *ngIf="misProgramas.length > 0; else noProgramas">
+                    Participando en: {{getMisProgramasNames()}}.
+                  </span>
+                  <ng-template #noProgramas>
+                    Aún no te has inscrito en ningún programa.
+                  </ng-template>
+                </small>
+              </div>
+            </div>
+
+            <!-- Información Personal -->
+            <div class="col-12 mt-5">
+              <h5 class="fw-bold text-dark border-bottom pb-3 mb-4">Información de Seguridad</h5>
+              <div class="row g-3">
+                <div class="col-sm-6 text-muted">
+                  <label class="d-block small fw-bold">Correo Electrónico</label>
+                  <span class="text-dark fw-medium">{{usuario.email}}</span>
+                </div>
+                <div class="col-sm-6 text-muted">
+                  <label class="d-block small fw-bold">Documento de Identidad</label>
+                  <span class="text-dark fw-medium">{{usuario.documento || usuario.numero_documento || 'No registrado'}}</span>
+                </div>
+                <div class="col-sm-6 text-muted mt-3">
+                  <label class="d-block small fw-bold">Estado de Cuenta</label>
+                  <span class="badge bg-success rounded-pill px-3">Activo y Verificado</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

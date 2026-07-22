@@ -1,18 +1,8 @@
-from fastapi import APIRouter, HTTPException
-from app.controllers.auth_controller import login_user
+from fastapi import APIRouter
+from app.controllers.auth_controller import login
 
 router = APIRouter()
 
-
 @router.post("/login")
-def login(data: dict):
-
-    result = login_user(
-        data["correo"],
-        data["password"]
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=401, detail=result["error"])
-
-    return result
+def login_route(data: dict):
+    return login(data)

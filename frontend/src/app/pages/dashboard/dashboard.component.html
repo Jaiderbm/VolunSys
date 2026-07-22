@@ -1,0 +1,119 @@
+<div class="container mt-5">
+  <div *ngIf="miTarea && rol === 'User'" class="alert alert-info border-0 rounded-4 shadow-sm p-4 mb-5 d-flex align-items-center" style="background: linear-gradient(90deg, #e3f2fd 0%, #ffffff 100%);">
+    <div class="fs-1 me-4">🚀</div>
+    <div>
+      <h4 class="fw-bold mb-1 text-primary">¡Tienes una nueva tarea asignada!</h4>
+      <p class="mb-0 text-dark opacity-75">Tu próxima misión es: <span class="fw-bolder fs-5 text-uppercase">{{miTarea}}</span>. Prepárate para el impacto social.</p>
+    </div>
+    <a routerLink="/inscripciones" class="btn btn-primary rounded-pill ms-auto px-4 fw-bold">Ver Detalles</a>
+  </div>
+
+  <div class="row mb-5 align-items-center">
+    <div class="col-md-8">
+      <h1 class="fw-bolder text-dark mb-1">¡Bienvenido, <span class="text-primary">{{nombre_usuario}}</span>! 👋</h1>
+      <p class="text-muted fs-5">Tu panel central de operaciones VolunSys. Aquí tienes el control de todo.</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+      <span class="badge rounded-pill px-4 py-2 fs-6 shadow-sm" style="background: linear-gradient(45deg, #11998e, #38ef7d);">
+        🟢 Nivel de Acceso: {{rol}}
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Usuarios (Social) - Solo Admin -->
+    <div *ngIf="rol === 'Admin'" class="col-lg-4 col-md-6">
+      <div class="card dashboard-card h-100 shadow-sm border-0 bg-white">
+        <div class="card-body p-4 text-center">
+          <div class="mb-3">
+            <span class="fs-1">👥</span>
+          </div>
+          <h4 class="fw-bold mb-2">Gestión de Usuarios</h4>
+          <p class="text-muted small">Administra las cuentas y roles de la plataforma.</p>
+          <a routerLink="/usuarios" class="btn btn-primary rounded-pill w-100 fw-bold mt-2">
+            Administrar Usuarios
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gestión de Programas (Active for Admin/Coordinador) -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card dashboard-card h-100 shadow-sm border-0 bg-white">
+        <div class="card-body p-4 text-center">
+          <div class="mb-3">
+            <span class="fs-1">📅</span>
+          </div>
+          <h4 class="fw-bold mb-2">Planificación</h4>
+          <p class="text-muted small">Crea y organiza nuevas jornadas de impacto social.</p>
+          <ng-container *ngIf="rol === 'Admin' || rol === 'Coordinador'; else userPlan">
+            <a routerLink="/organizador/planificacion" class="btn btn-warning rounded-pill w-100 fw-bold mt-2 text-dark">Planificar Ahora</a>
+          </ng-container>
+          <ng-template #userPlan>
+            <a routerLink="/voluntariados" class="btn btn-outline-warning rounded-pill w-100 fw-bold mt-2 text-dark">Ver Calendario</a>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asignaciones (NEW for Organizer/Admin) -->
+    <div *ngIf="rol === 'Admin' || rol === 'Coordinador'" class="col-lg-4 col-md-6">
+      <div class="card dashboard-card h-100 shadow-sm border-0 bg-white border-start border-4 border-info">
+        <div class="card-body p-4 text-center">
+          <div class="mb-3">
+            <span class="fs-1">✍️</span>
+          </div>
+          <h4 class="fw-bold mb-2 text-info">Asignar Tareas</h4>
+          <p class="text-muted small">Asigna actividades específicas a los voluntarios inscritos.</p>
+          <a routerLink="/organizador/asignaciones" class="btn btn-info rounded-pill w-100 fw-bold mt-2 text-white">Ir a Asignaciones</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mis Inscripciones (For Volunteers) -->
+    <div *ngIf="rol === 'User'" class="col-lg-4 col-md-6">
+      <div class="card dashboard-card h-100 shadow-sm border-0 bg-white border-start border-4 border-success">
+        <div class="card-body p-4 text-center">
+          <div class="mb-3">
+            <span class="fs-1">✅</span>
+          </div>
+          <h4 class="fw-bold mb-2 text-success">Mis Actividades</h4>
+          <p class="text-muted small">Revisa tus inscripciones y las tareas que te han asignado.</p>
+          <a routerLink="/inscripciones" class="btn btn-success rounded-pill w-100 fw-bold mt-2">Ver Mis Tareas</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Power BI / Analytics -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card dashboard-card h-100 shadow-sm border-0 bg-dark text-white">
+        <div class="card-body p-4 text-center">
+          <div class="mb-3">
+            <span class="fs-1">📊</span>
+          </div>
+          <h4 class="fw-bold mb-2 text-warning">Impacto Real</h4>
+          <p class="text-white-50 small">Visualiza métricas y resultados mediante Power BI.</p>
+          <a routerLink="/powerbi" class="btn btn-warning rounded-pill w-100 fw-bold mt-2 text-dark">Abrir Dashboard</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Programas Detallados -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card dashboard-card h-100 shadow-sm border-0 bg-primary text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="card-body p-4 text-center">
+          <div class="mb-3">
+            <span class="fs-1">🏖️</span>
+          </div>
+          <h4 class="fw-bold mb-2">Explorar Áreas</h4>
+          <p class="text-white-50 small">Explora las playas, rescate y apoyo a adultos.</p>
+          <div class="d-flex gap-2 mt-3">
+            <a routerLink="/playas" class="btn btn-sm btn-light rounded-pill flex-grow-1">🏖️ Playas</a>
+            <a routerLink="/rescate" class="btn btn-sm btn-light rounded-pill flex-grow-1">🐾 Rescate</a>
+            <a routerLink="/adultos" class="btn btn-sm btn-light rounded-pill flex-grow-1">👵 Adultos</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

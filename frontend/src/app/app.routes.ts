@@ -1,0 +1,35 @@
+import { Routes } from '@angular/router';
+import { HomeComponent } from './pages/home/home.component';
+import { LoginComponent } from './pages/login/login.component';
+import { RegistroComponent } from './pages/registro/registro.component';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { PerfilComponent } from './pages/perfil/perfil.component';
+import { InscripcionesComponent } from './pages/inscripciones/inscripciones.component';
+import { UsuariosComponent } from './pages/usuarios/usuarios.component';
+import { PlanificacionComponent } from './pages/organizador/planificacion/planificacion.component';
+import { AsignacionesComponent } from './pages/organizador/asignaciones/asignaciones.component';
+import { PlayasComponent } from './pages/playas/playas.component';
+import { RescateComponent } from './pages/rescate/rescate.component';
+import { AdultosComponent } from './pages/adultos/adultos.component';
+import { PowerBIComponent } from './pages/powerbi/powerbi.component';
+import { ActividadDetalleComponent } from './pages/actividades/detalle/actividad-detalle.component';
+import { VoluntariadosComponent } from './pages/voluntariados/voluntariados.component';
+
+export const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'registro', component: RegistroComponent },
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'perfil', component: PerfilComponent },
+  { path: 'inscripciones', component: InscripcionesComponent },
+  { path: 'usuarios', component: UsuariosComponent },
+  { path: 'organizador/planificacion', component: PlanificacionComponent },
+  { path: 'organizador/asignaciones', component: AsignacionesComponent },
+  { path: 'playas', component: PlayasComponent },
+  { path: 'rescate', component: RescateComponent },
+  { path: 'adultos', component: AdultosComponent },
+  { path: 'powerbi', component: PowerBIComponent },
+  { path: 'actividades/:programaId', component: ActividadDetalleComponent },
+  { path: 'voluntariados', component: VoluntariadosComponent },
+  { path: '**', redirectTo: '' }
+];

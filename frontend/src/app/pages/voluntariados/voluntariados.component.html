@@ -1,0 +1,37 @@
+<div class="container mt-5">
+  <h1 class="mb-4">Programas de Voluntariado</h1>
+
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2">Cargando programas...</p>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{error}}</div>
+
+  <div *ngIf="!loading && !error" class="row">
+    <div *ngFor="let v of voluntariados" class="col-md-4 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title fw-bold">{{v.nombre}}</h5>
+          <p class="card-text text-muted">{{v.descripcion || 'Sin descripción disponible.'}}</p>
+          
+          <div class="mt-auto">
+            <ng-container *ngIf="misProgramasIds.includes(v.id); else registerBtn">
+              <button class="btn btn-outline-success w-100 fw-bold disabled">
+                ✅ Inscrito
+              </button>
+              <a [routerLink]="['/actividades', v.id]" class="btn btn-primary w-100 mt-2 fw-bold">
+                Ver Actividades
+              </a>
+            </ng-container>
+            <ng-template #registerBtn>
+              <button class="btn btn-success w-100 fw-bold" (click)="participio(v.id)">
+                Inscribirse al Programa
+              </button>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

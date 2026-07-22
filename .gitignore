@@ -1,5 +1,8 @@
 # Entorno virtual
 myvenv/
+.venv/
+venv_nuevo/
+microservicio_ubicaciones/node_modules/
 
 # Cache Python
 __pycache__/
@@ -10,5 +13,3 @@ __pycache__/
 
 # VSCode
 .vscode/
-
-

@@ -1,0 +1,77 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold text-dark">Planificación de Jornadas 🛠️</h2>
+          <p class="text-muted">Como organizador, define las próximas actividades para los voluntarios.</p>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+      </div>
+
+      <div *ngIf="!loading">
+        <div class="card border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-4">Nueva Jornada de Voluntariado</h5>
+            
+            <form (ngSubmit)="handleCrear()">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold small">Nombre de la Actividad</label>
+                  <input type="text" class="form-control rounded-3" [(ngModel)]="nuevaJornada.titulo" name="titulo" placeholder="Ej: Limpieza de Playa Salguero" required>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold small">Programa Asociado</label>
+                  <select class="form-select rounded-3" [(ngModel)]="nuevaJornada.programa_id" name="programa_id" required>
+                    <option value="">Selecciona un programa...</option>
+                    <option *ngFor="let p of programas" [value]="p.id">{{p.nombre}}</option>
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold small">Descripción Detallada</label>
+                  <textarea class="form-control rounded-3" rows="3" [(ngModel)]="nuevaJornada.descripcion" name="descripcion" placeholder="Explica de qué trata la jornada..." required></textarea>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-bold small">Fecha</label>
+                  <input type="date" class="form-control rounded-3" [(ngModel)]="nuevaJornada.fecha" name="fecha" required>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-bold small">Hora</label>
+                  <input type="time" class="form-control rounded-3" [(ngModel)]="nuevaJornada.hora" name="hora" required>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-bold small">Cupos Disponibles</label>
+                  <input type="number" class="form-control rounded-3" [(ngModel)]="nuevaJornada.cupos" name="cupos" min="1" required>
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-label fw-bold small">Ciudad / Ubicación</label>
+                  <select class="form-select rounded-3" [(ngModel)]="nuevaJornada.ciudad_id" name="ciudad_id" required>
+                    <option value="">Selecciona una ciudad...</option>
+                    <option *ngFor="let c of ciudades" [value]="c.id">{{c.nombre}}</option>
+                  </select>
+                </div>
+
+                <div class="col-12 mt-4">
+                  <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm">
+                    Publicar Jornada
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

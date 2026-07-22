@@ -1,0 +1,45 @@
+<div class="container py-5">
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="fw-bold">✍️ Asignación de Actividades</h2>
+      <p class="text-muted">Asigna roles específicos a los voluntarios que se han inscrito en las jornadas.</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{error}}</div>
+
+  <div *ngIf="!loading && !error" class="row g-4">
+    <div *ngFor="let i of inscripciones" class="col-md-6 col-lg-4">
+      <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <span class="badge bg-light text-primary border rounded-pill px-3">{{i.voluntariado}}</span>
+            <span class="text-muted small">{{i.fecha}}</span>
+          </div>
+          <h5 class="fw-bold mb-1">{{i.usuario}}</h5>
+          <p class="text-muted small mb-3">Estado: <span class="fw-bold">{{i.estado || 'Pendiente'}}</span></p>
+          
+          <div class="border-top pt-3">
+            <label class="form-label small fw-bold text-muted">Tarea Asignada:</label>
+            <div *ngIf="i.tarea" class="alert alert-info py-2 px-3 rounded-pill small mb-2 d-flex justify-content-between align-items-center">
+              <span>✨ {{i.tarea}}</span>
+            </div>
+            
+            <select class="form-select form-select-sm rounded-3 mb-2" (change)="handleAsignar(i.id, $event)">
+              <option value="">{{i.tarea ? 'Cambiar tarea...' : 'Asignar nueva tarea...'}}</option>
+              <option *ngFor="let t of tareasSugeridas" [value]="t">{{t}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="inscripciones.length === 0" class="col-12 text-center text-muted py-5">
+      No hay inscripciones registradas en el sistema.
+    </div>
+  </div>
+</div>

@@ -1,22 +1,12 @@
 from fastapi import APIRouter
-from app.controllers.voluntariados_controller import (
-    crear_voluntariado,
-    listar_voluntariados
-)
+from app.controllers.voluntariados_controller import get_voluntariados, crear_voluntariado
 
-router = APIRouter()
-
-
-@router.post("/")
-def crear(data: dict):
-    return crear_voluntariado(
-        data["usuario_id"],
-        data["tipo_voluntariado_id"],
-        data["fecha_inicio"],
-        data.get("fecha_fin")
-    )
-
+router = APIRouter(prefix="/voluntariados", tags=["Voluntariados"])
 
 @router.get("/")
 def listar():
-    return listar_voluntariados()
+    return get_voluntariados()
+
+@router.post("/")
+def crear(data: dict):
+    return crear_voluntariado(data)

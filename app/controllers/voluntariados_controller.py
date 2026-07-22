@@ -1,59 +1,94 @@
-from app.config.db_config import get_connection
+from app.config.db_config import conn
 
-
-def crear_voluntariado(usuario_id: int, tipo_id: int, fecha_inicio, fecha_fin=None):
-    conn = get_connection()
+def get_voluntariados():
     cursor = conn.cursor()
+    cursor.execute("""
+        SELECT v.id, v.titulo, v.descripcion, v.fecha, v.hora, v.cupos, v.proyecto_id, p.programa_id, v.ciudad_id, v.tipo_voluntariado_id
+        FROM voluntariados v
+        LEFT JOIN proyectos p ON v.proyecto_id = p.id
+    """)
+    res = cursor.fetchall()
+    return [{
+        "id": r[0], "titulo": r[1], "descripcion": r[2], 
+        "fecha": str(r[3]), "hora": str(r[4]), 
+        "cupos": r[5], "proyecto_id": r[6],
+        "programa_id": r[7], "ciudad_id": r[8],
+        "tipo_voluntariado_id": r[9]
+    } for r in res]
 
-    cursor.execute(
-        """
-        INSERT INTO voluntariados
-        (usuario_id, tipo_voluntariado_id, fecha_inicio, fecha_fin)
-        VALUES (%s, %s, %s, %s)
-        RETURNING id, usuario_id, tipo_voluntariado_id, estado;
-        """,
-        (usuario_id, tipo_id, fecha_inicio, fecha_fin)
-    )
-
-    nuevo = cursor.fetchone()
-    conn.commit()
-
-    cursor.close()
-    conn.close()
-
-    return {
-        "id": nuevo[0],
-        "usuario_id": nuevo[1],
-        "tipo_voluntariado_id": nuevo[2],
-        "estado": nuevo[3]
-    }
-
-
-def listar_voluntariados():
-    conn = get_connection()
+def crear_voluntariado(data: dict):
     cursor = conn.cursor()
+    
+    # 1. Resolve proyecto_id from programa_id or proyecto_id
+    programa_id = data.get("programa_id") or data.get("proyecto_id")
+    proyecto_id = None
+    if programa_id:
+        try:
+            programa_id = int(programa_id)
+        except (ValueError, TypeError):
+            pass
+            
+    if programa_id:
+        cursor.execute("SELECT id FROM proyectos WHERE programa_id = %s LIMIT 1;", (programa_id,))
+        row = cursor.fetchone()
+        if row:
+            proyecto_id = row[0]
+        else:
+            # Create project if it doesn't exist for this program
+            cursor.execute("SELECT nombre, descripcion FROM programas WHERE id = %s;", (programa_id,))
+            prog_row = cursor.fetchone()
+            if prog_row:
+                prog_nombre, prog_desc = prog_row
+                cursor.execute("""
+                    INSERT INTO proyectos (nombre, programa_id, descripcion)
+                    VALUES (%s, %s, %s)
+                    RETURNING id;
+                """, (f"Proyecto - {prog_nombre}", programa_id, prog_desc))
+                proyecto_id = cursor.fetchone()[0]
+                
+    if not proyecto_id:
+        # Fallback to any project to satisfy NOT NULL constraint
+        cursor.execute("SELECT id FROM proyectos LIMIT 1;")
+        row = cursor.fetchone()
+        if row:
+            proyecto_id = row[0]
 
-    cursor.execute(
-        """
-        SELECT id, usuario_id, tipo_voluntariado_id,
-               fecha_inicio, fecha_fin, estado
-        FROM voluntariados;
-        """
-    )
+    # 2. Get ciudad_id (if passed)
+    ciudad_id = data.get("ciudad_id")
+    if ciudad_id:
+        try:
+            ciudad_id = int(ciudad_id)
+        except (ValueError, TypeError):
+            ciudad_id = None
 
-    rows = cursor.fetchall()
+    # 3. Get tipo_voluntariado_id
+    tipo_voluntariado_id = data.get("tipo_voluntariado_id")
+    if tipo_voluntariado_id:
+        try:
+            tipo_voluntariado_id = int(tipo_voluntariado_id)
+        except (ValueError, TypeError):
+            tipo_voluntariado_id = 1
+    else:
+        tipo_voluntariado_id = 1 # Default to 1 (Presencial)
 
-    cursor.close()
-    conn.close()
-
-    return [
-        {
-            "id": v[0],
-            "usuario_id": v[1],
-            "tipo_voluntariado_id": v[2],
-            "fecha_inicio": v[3],
-            "fecha_fin": v[4],
-            "estado": v[5]
-        }
-        for v in rows
-    ]
+    try:
+        cursor.execute("""
+            INSERT INTO voluntariados (titulo, descripcion, fecha, hora, cupos, proyecto_id, tipo_voluntariado_id, ciudad_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, titulo;
+        """, (
+            data.get("titulo"),
+            data.get("descripcion"),
+            data.get("fecha"),
+            data.get("hora"),
+            data.get("cupos", 10),
+            proyecto_id,
+            tipo_voluntariado_id,
+            ciudad_id
+        ))
+        row = cursor.fetchone()
+        conn.commit()
+        return {"success": True, "id": row[0], "titulo": row[1]}
+    except Exception as e:
+        conn.rollback()
+        return {"success": False, "message": str(e)}

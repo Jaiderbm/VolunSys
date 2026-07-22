@@ -1,0 +1,134 @@
+<div class="dashboard-wrapper">
+
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <div class="header-icon">📊</div>
+      <div>
+        <h1 class="dashboard-title">Panel de Estadísticas</h1>
+        <p class="dashboard-subtitle">Datos en tiempo real de VolunSys</p>
+      </div>
+    </div>
+    <span class="live-badge">
+      <span class="live-dot"></span> En vivo
+    </span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Cargando estadísticas...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!isLoading && hasError" class="error-state">
+    <span class="error-icon">⚠️</span>
+    <h3>Error al cargar los datos</h3>
+    <p>Verifica que la API esté corriendo en http://localhost:8000</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading && !hasError">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-primary">
+        <div class="kpi-emoji">👥</div>
+        <div class="kpi-text">
+          <span class="kpi-label">Total Voluntarios</span>
+          <span class="kpi-value">{{ stats.total_voluntarios }}</span>
+        </div>
+        <div class="kpi-bg-icon">👥</div>
+      </div>
+      <div class="kpi-card kpi-success">
+        <div class="kpi-emoji">⏱️</div>
+        <div class="kpi-text">
+          <span class="kpi-label">Horas Sociales</span>
+          <span class="kpi-value">{{ stats.horas_sociales }}<small>h</small></span>
+        </div>
+        <div class="kpi-bg-icon">⏱️</div>
+      </div>
+      <div class="kpi-card kpi-warning">
+        <div class="kpi-emoji">📋</div>
+        <div class="kpi-text">
+          <span class="kpi-label">Programas Activos</span>
+          <span class="kpi-value">{{ stats.programas_activos }}</span>
+        </div>
+        <div class="kpi-bg-icon">📋</div>
+      </div>
+      <div class="kpi-card kpi-info-card">
+        <div class="kpi-emoji">✅</div>
+        <div class="kpi-text">
+          <span class="kpi-label">Inscripciones</span>
+          <span class="kpi-value">{{ stats.inscripciones_totales }}</span>
+        </div>
+        <div class="kpi-bg-icon">✅</div>
+      </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+
+      <!-- Chart 1: Barras — Voluntarios por Programa -->
+      <div class="chart-card chart-wide">
+        <div class="chart-card-header">
+          <div class="chart-title-group">
+            <span class="chart-icon">📈</span>
+            <div>
+              <h3 class="chart-title">Voluntarios por Programa</h3>
+              <p class="chart-desc">Inscritos en cada programa activo</p>
+            </div>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas baseChart
+            [data]="barChartData"
+            [type]="barChartType"
+            [options]="barChartOptions">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Doughnut — Usuarios por Rol -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-title-group">
+            <span class="chart-icon">🥧</span>
+            <div>
+              <h3 class="chart-title">Usuarios por Rol</h3>
+              <p class="chart-desc">Composición del sistema</p>
+            </div>
+          </div>
+        </div>
+        <div class="chart-body chart-body-doughnut">
+          <canvas baseChart
+            [data]="doughnutChartData"
+            [type]="doughnutChartType"
+            [options]="doughnutChartOptions">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Chart 3: Barras horizontales — Top Voluntariados -->
+      <div class="chart-card chart-full">
+        <div class="chart-card-header">
+          <div class="chart-title-group">
+            <span class="chart-icon">🏆</span>
+            <div>
+              <h3 class="chart-title">Top 5 Voluntariados</h3>
+              <p class="chart-desc">Con mayor número de inscripciones</p>
+            </div>
+          </div>
+        </div>
+        <div class="chart-body chart-body-hbar">
+          <canvas baseChart
+            [data]="hbarChartData"
+            [type]="hbarChartType"
+            [options]="hbarChartOptions">
+          </canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

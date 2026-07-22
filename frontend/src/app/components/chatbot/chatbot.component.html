@@ -1,0 +1,69 @@
+<!-- Chat Button -->
+<button class="chat-btn shadow-lg" (click)="toggleChat()" [ngClass]="{'d-none': isOpen}">
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
+    <path d="M16 8c0 3.866-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-2.013 3.712-3.821 3.399-3.821 3.399l.986-3.415C1.528 12.658 0 10.55 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7zM5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+  </svg>
+</button>
+
+<!-- Chat Window -->
+<div class="chat-window shadow-lg" [ngClass]="{'show-chat': isOpen, 'hide-chat': !isOpen}">
+  
+  <!-- Header -->
+  <div class="chat-header d-flex justify-content-between align-items-center p-3 text-white">
+    <div class="d-flex align-items-center gap-2">
+      <div class="bot-avatar">🤖</div>
+      <div>
+        <h6 class="mb-0 fw-bold">VolunBot</h6>
+        <small class="text-white-50 lh-1" style="font-size: 0.75rem;">Soporte en línea</small>
+      </div>
+    </div>
+    <button class="btn-close btn-close-white" (click)="toggleChat()" aria-label="Close"></button>
+  </div>
+
+  <!-- Messages Body -->
+  <div class="chat-body p-3" #scrollMe [scrollTop]="scrollMe.scrollHeight">
+    <div *ngFor="let msg of messages" class="message-wrapper d-flex mb-3" [ngClass]="{'justify-content-end': msg.isUser, 'justify-content-start': !msg.isUser}">
+      
+      <!-- Bot Message -->
+      <div *ngIf="!msg.isUser" class="message-bubble bot-bubble shadow-sm p-3 rounded-4">
+        <div class="mb-1 text-dark bot-text" style="font-size: 0.9rem;" [innerHTML]="msg.html"></div>
+        <div class="text-end text-muted" style="font-size: 0.65rem;">{{ msg.time }}</div>
+      </div>
+      
+      <!-- User Message -->
+      <div *ngIf="msg.isUser" class="message-bubble user-bubble shadow-sm p-3 rounded-4 bg-primary text-white">
+        <p class="mb-1" style="font-size: 0.9rem;">{{ msg.text }}</p>
+        <div class="text-end text-white-50" style="font-size: 0.65rem;">{{ msg.time }}</div>
+      </div>
+
+    </div>
+
+    <!-- Typing Indicator -->
+    <div *ngIf="isTyping" class="message-wrapper d-flex mb-3 justify-content-start">
+      <div class="message-bubble bot-bubble shadow-sm p-3 rounded-4">
+        <div class="typing-indicator">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chat-footer p-2 bg-light border-top">
+    <form (ngSubmit)="sendMessage()" class="d-flex gap-2">
+      <input 
+        type="text" 
+        class="form-control rounded-pill border-0 shadow-sm px-4" 
+        placeholder="Escribe tu mensaje..." 
+        [(ngModel)]="newMessage" 
+        name="message" 
+        autocomplete="off"
+        required>
+      <button type="submit" class="btn btn-primary rounded-circle send-btn shadow-sm" [disabled]="!newMessage.trim()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+          <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+</div>

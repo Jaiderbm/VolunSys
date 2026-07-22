@@ -1,27 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException
-from app.controllers.usuarios_controller import (
-    crear_usuario,
-    listar_usuarios
-)
+from fastapi import APIRouter
+from app.controllers.usuarios_controller import *
 
-from app.config.deps import get_current_user   # 👈 JWT
+router = APIRouter(prefix="/usuarios")
 
-router = APIRouter()
+@router.get("/")
+def listar():
+    return get_usuarios()
 
+@router.get("/{id}")
+def get_uno(id: int):
+    return get_usuario(id)
+
+@router.get("/horas/{id}")
+def get_horas(id: int):
+    return {"horas_sociales": get_horas_sociales(id)}
 
 @router.post("/")
 def crear(data: dict):
-    return crear_usuario(
-        data["nombre"],
-        data["correo"],
-        data["password"],
-        
-        data["pais_id"],
-        data["ciudad_id"]
-    )
+    return crear_usuario(data)
 
+@router.delete("/{id}")
+def eliminar(id: int):
+    return eliminar_usuario(id)
 
-# 🔒 Ruta protegida con JWT
-@router.get("/")
-def listar(user=Depends(get_current_user)):
-    return listar_usuarios()
+@router.put("/{id}")
+def actualizar(id: int, data: dict):
+    return actualizar_usuario(id, data)
