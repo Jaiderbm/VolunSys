@@ -92,3 +92,23 @@ def crear_voluntariado(data: dict):
     except Exception as e:
         conn.rollback()
         return {"success": False, "message": str(e)}
+
+def eliminar_voluntariado(id: int):
+    cursor = conn.cursor()
+    try:
+        # 1. Eliminar participaciones relacionadas (vía inscripciones)
+        cursor.execute("""
+            DELETE FROM participaciones 
+            WHERE inscripcion_id IN (SELECT id FROM inscripciones WHERE voluntariado_id = %s);
+        """, (id,))
+        # 2. Eliminar inscripciones del voluntariado
+        cursor.execute("DELETE FROM inscripciones WHERE voluntariado_id = %s;", (id,))
+        # 3. Eliminar voluntariado
+        cursor.execute("DELETE FROM voluntariados WHERE id = %s;", (id,))
+        conn.commit()
+        return {"success": True}
+    except Exception as e:
+        conn.rollback()
+        return {"success": False, "message": str(e)}
+    finally:
+        cursor.close()

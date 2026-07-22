@@ -1,21 +1,24 @@
 <!-- HERO SECTION -->
-<div class="hero-animated text-center mb-5">
+<div class="hero-animated text-center mb-5 position-relative" style="background-image: url('img/Portada.png'); background-size: cover; background-position: center; border-radius: 0 0 2rem 2rem; padding: 100px 0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+  <!-- Overlay oscuro para que el texto sea legible sobre la foto -->
+  <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(30, 60, 114, 0.7); z-index: 1;"></div>
+  
   <div class="container position-relative" style="z-index: 3;">
-    <h1 class="display-3 fw-bolder mb-4" style="color: #fff; letter-spacing: -1px; text-shadow: 2px 2px 8px rgba(0,0,0,0.8);">¡Transforma tu ciudad hoy! 🌟</h1>
-    <p class="lead mb-5 fs-4 fw-medium mx-auto" style="max-width: 800px; color: #f0f0f0; text-shadow: 1px 1px 6px rgba(0,0,0,0.9);">
+    <h1 class="display-3 fw-bolder mb-4 text-white" style="letter-spacing: -1px; text-shadow: 0 4px 15px rgba(0,0,0,0.3);">¡Transforma tu ciudad hoy! ✨</h1>
+    <p class="lead mb-5 fs-4 mx-auto text-white-50" style="max-width: 800px; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
       VolunSys es el puente interactivo entre tus ganas de ayudar y las comunidades locales que te necesitan.
     </p>
     <div class="d-flex justify-content-center gap-3 flex-wrap">
       <ng-container *ngIf="!rol; else authHero">
-        <a routerLink="/registro" class="btn btn-warning btn-lg fw-bold rounded-pill shadow-lg px-5 py-3 fs-5" style="background: linear-gradient(45deg, #f5af19, #f12711); border:none; color:white;">
+        <a routerLink="/registro" class="btn btn-modern bg-gradient-warning text-white btn-lg px-5 py-3 fs-5">
           ¡Únete como Voluntario!
         </a>
-        <a routerLink="/login" class="btn btn-outline-light btn-lg fw-bold rounded-pill px-5 py-3 fs-5" style="border-width: 2px; color: white; border-color: white;">
+        <a routerLink="/login" class="btn btn-modern btn-outline-light btn-lg px-5 py-3 fs-5" style="border-width: 2px;">
           Iniciar Sesión
         </a>
       </ng-container>
       <ng-template #authHero>
-        <a routerLink="/dashboard" class="btn btn-light btn-lg fw-bold rounded-pill px-5 py-3 fs-5 shadow-sm text-primary">
+        <a routerLink="/dashboard" class="btn btn-modern bg-white text-primary btn-lg px-5 py-3 fs-5">
           🚀 Ir a mi Panel
         </a>
       </ng-template>
@@ -53,44 +56,44 @@
 
   <!-- PRÓXIMOS EVENTOS (INTERACTIVOS) -->
   <div class="text-center mb-5 mt-5">
-    <h2 class="fw-bold mb-3" style="color: #1e3c72; font-size: 2.5rem;">Próximas Jornadas 📅</h2>
-    <p class="text-muted fs-5">Haz clic en la tarjeta que más te guste para ver la información detallada.</p>
+    <h2 class="fw-bold mb-3 text-primary" style="font-size: 2.5rem;">Próximas Jornadas 📅</h2>
+    <p class="text-muted fs-5">Descubre cómo puedes aportar y selecciona la que más te motive.</p>
   </div>
 
-  <div class="row g-4 mb-5">
+  <div class="row g-4 mb-5 pb-5">
     <!-- Clickable Card 1 -->
     <div class="col-md-4">
-       <a routerLink="/playas" class="card h-100 glass-card rounded-4 p-4 text-center text-decoration-none">
-         <div class="fs-1 mb-3">🏖️</div>
+       <a routerLink="/playas" class="card h-100 glass-card p-4 text-center text-decoration-none">
+         <div class="fs-1 mb-3 bg-white d-inline-block rounded-circle p-3 shadow-sm mx-auto transition" style="width: 80px; height: 80px;">🏖️</div>
          <div class="event-date mb-3 mx-auto shadow-sm">15 de Abril, 2026</div>
-         <h4 class="fw-bold text-dark event-title transition">Limpieza Salguero</h4>
+         <h4 class="fw-bold text-dark event-title transition mt-3">Limpieza Salguero</h4>
          <p class="text-muted mt-2">Jornada intensiva de limpieza de costas con más de 200 voluntarios esperados. ¡Súmate!</p>
          <div class="mt-auto pt-3">
-           <span class="badge rounded-pill bg-light text-primary border px-3 py-2">Explorar Programa</span>
+           <span class="badge rounded-pill bg-white text-primary border border-primary px-4 py-2 fs-6 shadow-sm transition">Ver Detalles →</span>
          </div>
        </a>
     </div>
     <!-- Clickable Card 2 -->
     <div class="col-md-4">
-       <a routerLink="/rescate" class="card h-100 glass-card rounded-4 p-4 text-center text-decoration-none">
-         <div class="fs-1 mb-3">🐶</div>
-         <div class="event-date mb-3 mx-auto shadow-sm" style="background: linear-gradient(45deg, #11998e, #38ef7d);">22 de Abril, 2026</div>
-         <h4 class="fw-bold text-dark event-title transition">Vacunación Animal</h4>
+       <a routerLink="/rescate" class="card h-100 glass-card p-4 text-center text-decoration-none">
+         <div class="fs-1 mb-3 bg-white d-inline-block rounded-circle p-3 shadow-sm mx-auto transition" style="width: 80px; height: 80px;">🐶</div>
+         <div class="event-date mb-3 mx-auto shadow-sm" style="background: linear-gradient(135deg, #11998e, #38ef7d);">22 de Abril, 2026</div>
+         <h4 class="fw-bold text-dark event-title transition mt-3">Vacunación Animal</h4>
          <p class="text-muted mt-2">Apoyo a la fundación local para la vacunación masiva de perros y gatos callejeros.</p>
          <div class="mt-auto pt-3">
-           <span class="badge rounded-pill bg-light text-warning border px-3 py-2">Explorar Programa</span>
+           <span class="badge rounded-pill bg-white text-success border border-success px-4 py-2 fs-6 shadow-sm transition">Ver Detalles →</span>
          </div>
        </a>
     </div>
     <!-- Clickable Card 3 -->
     <div class="col-md-4">
-       <a routerLink="/adultos" class="card h-100 glass-card rounded-4 p-4 text-center text-decoration-none">
-         <div class="fs-1 mb-3">👴🏼</div>
-         <div class="event-date mb-3 mx-auto shadow-sm" style="background: linear-gradient(45deg, #8E2DE2, #4A00E0);">01 de Mayo, 2026</div>
-         <h4 class="fw-bold text-dark event-title transition">Bingo Solidario</h4>
+       <a routerLink="/adultos" class="card h-100 glass-card p-4 text-center text-decoration-none">
+         <div class="fs-1 mb-3 bg-white d-inline-block rounded-circle p-3 shadow-sm mx-auto transition" style="width: 80px; height: 80px;">👴🏼</div>
+         <div class="event-date mb-3 mx-auto shadow-sm" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);">01 de Mayo, 2026</div>
+         <h4 class="fw-bold text-dark event-title transition mt-3">Bingo Solidario</h4>
          <p class="text-muted mt-2">Acompañamiento y actividades lúdicas para la tercera edad en el asilo de la ciudad.</p>
          <div class="mt-auto pt-3">
-           <span class="badge rounded-pill bg-light text-primary border px-3 py-2">Explorar Programa</span>
+           <span class="badge rounded-pill bg-white text-info border border-info px-4 py-2 fs-6 shadow-sm transition">Ver Detalles →</span>
          </div>
        </a>
     </div>

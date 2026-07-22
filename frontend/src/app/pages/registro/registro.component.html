@@ -11,36 +11,61 @@
           <div *ngIf="error" class="alert alert-danger py-2 small fw-bold text-center border-0 shadow-sm rounded-pill">{{error}}</div>
           <div *ngIf="exito" class="alert alert-success py-2 small fw-bold text-center border-0 shadow-sm rounded-pill mt-3">{{exito}}</div>
 
-          <form (ngSubmit)="handleRegister()">
+          <!-- Formulario Reactivo vinculado con [formGroup] -->
+          <form [formGroup]="registroForm" (ngSubmit)="handleRegister()">
             <div class="row g-3 mb-3">
               <div class="col-md-6 form-floating">
-                <input type="text" class="form-control rounded-3 bg-light" id="nombre" [(ngModel)]="form.nombre" name="nombre" placeholder="Juan" required>
+                <input type="text" class="form-control rounded-3 bg-light" id="nombre" formControlName="nombre" placeholder="Juan">
                 <label for="nombre" class="ms-2 text-muted">Nombre</label>
+                <div *ngIf="f['nombre'].touched && f['nombre'].errors?.['required']" class="text-danger small mt-1 ms-2">
+                  El nombre es requerido.
+                </div>
               </div>
               <div class="col-md-6 form-floating">
-                <input type="text" class="form-control rounded-3 bg-light" id="apellido" [(ngModel)]="form.apellido" name="apellido" placeholder="Pérez" required>
+                <input type="text" class="form-control rounded-3 bg-light" id="apellido" formControlName="apellido" placeholder="Pérez">
                 <label for="apellido" class="ms-2 text-muted">Apellido</label>
+                <div *ngIf="f['apellido'].touched && f['apellido'].errors?.['required']" class="text-danger small mt-1 ms-2">
+                  El apellido es requerido.
+                </div>
               </div>
             </div>
 
             <div class="form-floating mb-3">
-              <input type="text" class="form-control rounded-3 bg-light" id="numero_documento" [(ngModel)]="form.numero_documento" name="numero_documento" placeholder="123456789" required>
+              <input type="text" class="form-control rounded-3 bg-light" id="numero_documento" formControlName="numero_documento" placeholder="123456789">
               <label for="numero_documento" class="text-muted">Número de Documento (Requerido)</label>
+              <div *ngIf="f['numero_documento'].touched && f['numero_documento'].errors?.['required']" class="text-danger small mt-1 ms-2">
+                El número de documento es obligatorio.
+              </div>
             </div>
 
             <div class="form-floating mb-3">
-              <input type="email" class="form-control rounded-3 bg-light" id="email" [(ngModel)]="form.email" name="email" placeholder="correo@ejemplo.com" required>
+              <input type="email" class="form-control rounded-3 bg-light" id="email" formControlName="email" placeholder="correo@ejemplo.com">
               <label for="email" class="text-muted">Correo electrónico</label>
+              <div *ngIf="f['email'].touched && f['email'].errors?.['required']" class="text-danger small mt-1 ms-2">
+                El correo es obligatorio.
+              </div>
+              <div *ngIf="f['email'].touched && f['email'].errors?.['email']" class="text-danger small mt-1 ms-2">
+                Formato de correo no válido.
+              </div>
             </div>
 
             <div class="form-floating mb-3">
-              <input type="tel" class="form-control rounded-3 bg-light" id="telefono" [(ngModel)]="form.telefono" name="telefono" placeholder="3000000000">
+              <input type="tel" class="form-control rounded-3 bg-light" id="telefono" formControlName="telefono" placeholder="3000000000">
               <label for="telefono" class="text-muted">Teléfono (opcional)</label>
             </div>
 
             <div class="form-floating mb-4">
-              <input type="password" class="form-control rounded-3 bg-light" id="password" [(ngModel)]="form.password" name="password" placeholder="Clave secreta" required>
+              <input type="password" class="form-control rounded-3 bg-light" id="password" formControlName="password" placeholder="Clave secreta">
               <label for="password" class="text-muted">Contraseña (Mín. 8 letras, 1 Número, 1 Mayúscula)</label>
+              <div *ngIf="f['password'].touched && f['password'].errors?.['required']" class="text-danger small mt-1 ms-2">
+                La contraseña es requerida.
+              </div>
+              <div *ngIf="f['password'].touched && f['password'].errors?.['minlength']" class="text-danger small mt-1 ms-2">
+                Debe tener al menos 8 caracteres.
+              </div>
+              <div *ngIf="f['password'].touched && f['password'].errors?.['pattern']" class="text-danger small mt-1 ms-2">
+                Debe incluir al menos una mayúscula, una minúscula y un número.
+              </div>
             </div>
 
             <p class="small text-muted text-center mb-4">🎵 Nota: Al registrarte, tu rol por defecto será estrictamente <b>Voluntario</b>.</p>

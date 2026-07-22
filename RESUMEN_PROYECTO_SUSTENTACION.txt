@@ -1,0 +1,121 @@
+================================================================================
+                    GUÍA DE SUSTENTACIÓN Y ARQUITECTURA - VOLUNSYS
+================================================================================
+
+1. ¿QUÉ ES VOLUNSYS?
+--------------------------------------------------------------------------------
+VolunSys es una plataforma web integral para la gestión de proyectos de voluntariado 
+y jornadas de impacto social (limpieza de playas, rescate animal, acompañamiento 
+a adultos mayores). 
+
+Permite a los ciudadanos registrarse como voluntarios, inscribirse en eventos, y a 
+los coordinadores y administradores gestionar tareas, usuarios y métricas de impacto.
+
+
+2. ARQUITECTURA GENERAL DEL SISTEMA
+--------------------------------------------------------------------------------
+El sistema está construido bajo una arquitectura de microservicios y capas desacopladas:
+
+  ┌─────────────────────────┐
+  │  Frontend (Angular 19)  │  --> Puerto 4200 (Interfaz de usuario)
+  └────────────┬────────────┘
+               │
+       ┌───────┴────────────────────────────────┐
+       ▼                                        ▼
+  ┌───────────────────────────┐   ┌──────────────────────────┐
+  │ Backend API (FastAPI)     │   │ Microservicio Ubicaciones│
+  │ Puerto 8000 (Python)      │   │ Puerto 3001 (Node.js)    │
+  └────────────┬──────────────┘   └──────────────────────────┘
+               │
+               ▼
+  ┌───────────────────────────┐
+  │ BD PostgreSQL (Neon Cloud)│
+  └───────────────────────────┘
+
+
+3. ESTRUCTURA DE CARPETAS Y DÓNDE ESTÁ CADA LÓGICA
+--------------------------------------------------------------------------------
+
+📂 FRONTEND (Angular 19 Standalone): Ubicado en `/frontend/src/app/`
+
+  • pages/registro/
+    --> CONTINE EL FORMULARIO REACTIVO (registroForm, FormBuilder, Validators).
+    --> Archivos: registro.component.ts y registro.component.html
+    --> Explicación: Lógica de validación 100% en TypeScript para correo, requeridos 
+        y contraseña segura (mínimo 8 caracteres, mayúscula, minúscula y número).
+
+  • pages/organizador/asignaciones/
+    --> Módulo de asignación de tareas con diseño Glassmorphic (fondo translúcido).
+    --> Archivos: asignaciones.component.ts, .html y .css
+    --> Permite a los coordinadores asignar roles específicos (Logística, Primeros 
+        Auxilios, etc.) a los voluntarios.
+
+  • pages/usuarios/
+    --> Gestión de usuarios y Roles (RBAC: Admin, Coordinador, Voluntario).
+    --> Archivos: usuarios.component.ts y .html
+
+  • pages/playas/, pages/rescate/, pages/adultos/
+    --> Módulos temáticos con tarjetas contenidas (cards), tablas históricas 
+        y formularios de registro rápido.
+
+  • pages/powerbi/
+    --> Dashboard para visualización analítica e impacto de proyectos.
+
+  • services/api.service.ts
+    --> Servicio centralizado de comunicación HTTP que conecta Angular con la API 
+        FastAPI (8000) y el Microservicio de Ubicaciones (3001).
+
+  • components/
+    --> Componentes reutilizables: navbar (navegación), footer (pie de página) 
+        y chatbot (asistente virtual).
+
+
+📂 BACKEND PRINCIPAL (FastAPI - Python): Ubicado en `/app/`
+
+  • app/main.py
+    --> Archivo principal de entrada de FastAPI, configuración de CORS y rutas base.
+
+  • app/controllers/
+    --> Lógica de negocio por entidad:
+        - usuario_controller.py (Autenticación y registro de usuarios)
+        - voluntariado_controller.py (Gestión de proyectos y actividades)
+        - inscripcion_controller.py (Inscripciones y asignaciones de tareas)
+
+  • app/config/security.py
+    --> Hash de contraseñas con bcrypt, JWT (tokens de sesión) y verificación de roles.
+
+  • app/config/database.py
+    --> Conexión a PostgreSQL alojada en la nube (Neon Cloud).
+
+
+📂 MICROSERVICIO DE UBICACIONES (Node.js + Express): Ubicado en `/microservicio_ubicaciones/`
+
+  • index.js
+    --> Microservicio independiente que corre en el puerto 3001 y retorna la lista 
+        de ciudades y municipios disponibles para las jornadas.
+
+
+4. CONCEPTOS CLAVE PARA SUSTENTAR AL PROFESOR
+--------------------------------------------------------------------------------
+
+A) FORMULARIO REACTIVO (Reactive Form):
+   - Ubicación: `src/app/pages/registro/registro.component.ts`
+   - ¿Qué responder?: "Implementamos un Formulario Reactivo usando ReactiveFormsModule, 
+     FormBuilder, FormGroup y Validators. A diferencia del enfoque Template-Driven (ngModel), 
+     la lógica de validación reside en el código TypeScript (registroForm), lo que permite 
+     validar datos en tiempo real (formControlName), manejar estados (valid/invalid/touched) 
+     y desacoplar la interfaz de la lógica de control."
+
+B) CONTROL DE ACCESO BASADO EN ROLES (RBAC):
+   - Rol 1: Administrador (Acceso total, gestión de usuarios y métricas).
+   - Rol 2: Coordinador / Organizador (Planificación de jornadas y asignación de tareas).
+   - Rol 3: Voluntario (Exploración de proyectos, inscripción y marcar asistencia).
+
+C) ARQUITECTURA DE DESPLIEGUE:
+   - El archivo `run_project.bat` en la raíz permite ejecutar automáticamente los 3 servicios 
+     en paralelo en ventanas independientes.
+
+
+================================================================================
+                       FIN DEL RESUMEN DE SUSTENTACIÓN
+================================================================================

@@ -72,6 +72,11 @@ def _try_provider(provider_cls, model: str, messages: list) -> str | None:
 
 
 def process_chat_message(messages: list) -> dict:
+    import os
+    import concurrent.futures
+    import urllib.request
+    from g4f.Provider import WeWordle, Felo, AnyProvider
+
     try:
         db_context = get_platform_context()
 
@@ -84,41 +89,84 @@ Usa estos datos en tiempo real para responder con precisión:
 Responde siempre en español. Sé claro, amigable y conciso.
 Cuando listes opciones o programas, usa listas numeradas o con guiones, un elemento por línea.
 """
+        # 1. Intentar usar la API oficial de Gemini si está configurada en .env
+        api_key = os.getenv("GEMINI_API_KEY")
+        if api_key:
+            try:
+                gemini_contents = []
+                for msg in messages:
+                    role = "user" if msg.role == "user" else "model"
+                    gemini_contents.append({
+                        "role": role,
+                        "parts": [{"text": msg.content}]
+                    })
+                
+                payload = {
+                    "contents": gemini_contents,
+                    "systemInstruction": {
+                        "parts": [{"text": system_instruction}]
+                    },
+                    "generationConfig": {
+                        "temperature": 0.7,
+                    }
+                }
+                
+                req = urllib.request.Request(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST"
+                )
+                
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    res_data = json.loads(response.read().decode("utf-8"))
+                    reply = res_data["candidates"][0]["content"]["parts"][0]["text"]
+                    if reply and reply.strip():
+                        return {"response": reply.strip()}
+            except Exception as gemini_err:
+                print(f"Error calling Gemini API: {gemini_err}")
+
+        # 2. Si no hay API Key o falla, usar proveedores gratuitos en paralelo
         formatted_messages = [{"role": "system", "content": system_instruction}]
         for msg in messages:
             role = "user" if msg.role == "user" else "assistant"
             formatted_messages.append({"role": role, "content": msg.content})
 
-        # --- Provider chain: fastest first ---
-        from g4f.Provider import PollinationsAI, WeWordle, Felo, BlackboxPro
+        providers = [
+            (WeWordle, "gpt-4o-mini"),
+            (Felo, "gpt-4o-mini"),
+            (AnyProvider, "gpt-4o-mini")
+        ]
 
-        # 1) WeWordle – suele ser el más rápido
-        reply = _try_provider(WeWordle, "gpt-4o-mini", formatted_messages)
+        def worker(provider_cls, model_name):
+            return _try_provider(provider_cls, model_name, formatted_messages)
+
+        reply = None
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(providers)) as executor:
+            futures = {executor.submit(worker, p, m): p for p, m in providers}
+            
+            # Recorrer a medida que completan y tomar el primero exitoso
+            for future in concurrent.futures.as_completed(futures):
+                p = futures[future]
+                try:
+                    result = future.result()
+                    if result:
+                        reply = result
+                        print(f"[CHATBOT] Fastest successful provider: {p.__name__}")
+                        break
+                except Exception as e:
+                    print(f"[CHATBOT] Provider {p.__name__} raised exception in thread: {e}")
+
         if reply:
             return {"response": reply}
 
-        # 2) PollinationsAI con modelo 'openai'
-        reply = _try_provider(PollinationsAI, "openai", formatted_messages)
-        if reply:
-            return {"response": reply}
-
-        # 3) Felo
-        reply = _try_provider(Felo, "gpt-4o-mini", formatted_messages)
-        if reply:
-            return {"response": reply}
-
-        # 4) BlackboxPro
-        reply = _try_provider(BlackboxPro, "gpt-4o-mini", formatted_messages)
-        if reply:
-            return {"response": reply}
-
-        # 5) Default client (auto-select)
+        # 3. Cliente por defecto (auto-select secuencial de g4f)
         try:
             client = Client()
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=formatted_messages,
-                timeout=20,
+                timeout=10,
             )
             reply = response.choices[0].message.content
             if reply and reply.strip():

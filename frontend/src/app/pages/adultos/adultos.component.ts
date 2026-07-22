@@ -24,7 +24,7 @@ export class AdultosComponent implements OnInit {
   async ngOnInit() {
     if (typeof window !== 'undefined') {
       this.rol = localStorage.getItem("rol") || "";
-      this.usuarioId = localStorage.getItem("usuario");
+      this.usuarioId = localStorage.getItem("usuarioId");
     }
     await this.loadData();
   }

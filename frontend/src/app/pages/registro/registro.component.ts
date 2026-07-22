@@ -1,42 +1,61 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './registro.component.html',
   styleUrl: './registro.component.css'
 })
-export class RegistroComponent {
+export class RegistroComponent implements OnInit {
   private apiService = inject(ApiService);
   private router = inject(Router);
+  private fb = inject(FormBuilder);
 
-  form = { nombre: "", apellido: "", email: "", telefono: "", password: "", numero_documento: "" };
+  registroForm!: FormGroup;
   error = "";
   exito = "";
+
+  ngOnInit() {
+    this.registroForm = this.fb.group({
+      nombre: ['', [Validators.required]],
+      apellido: ['', [Validators.required]],
+      numero_documento: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]],
+      telefono: [''],
+      password: ['', [
+        Validators.required, 
+        Validators.minLength(8),
+        Validators.pattern(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z])/)
+      ]]
+    });
+  }
+
+  // Getter auxiliar para acceder fácilmente a los controles desde la plantilla HTML
+  get f() {
+    return this.registroForm.controls;
+  }
 
   async handleRegister() {
     this.error = "";
     this.exito = "";
-    
-    if (this.form.password.length < 8) {
-      this.error = "La contraseña debe tener al menos 8 caracteres.";
-      return;
-    }
-    if (!/(?=.*\d)(?=.*[a-z])(?=.*[A-Z])/.test(this.form.password)) {
-      this.error = "La contraseña debe incluir al menos una mayúscula, una minúscula y un número.";
+
+    if (this.registroForm.invalid) {
+      this.registroForm.markAllAsTouched();
+      this.error = "Por favor, completa correctamente todos los campos obligatorios.";
       return;
     }
 
     try {
-      const res = await this.apiService.crearUsuario(this.form);
+      const formValue = this.registroForm.value;
+      const res = await this.apiService.crearUsuario(formValue);
       if (res.success) {
         this.exito = "¡Cuenta creada exitosamente! Ahora eres Voluntario Oficial.";
-        this.form = { nombre: "", apellido: "", email: "", telefono: "", password: "", numero_documento: "" };
+        this.registroForm.reset();
         setTimeout(() => this.router.navigate(['/login']), 2000);
       } else {
         this.error = res.message || "Error al crear la cuenta.";

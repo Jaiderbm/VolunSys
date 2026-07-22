@@ -1,69 +1,136 @@
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-10">
-      
-      <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="w-100 min-vh-100 py-4 px-3 px-md-5 position-relative" style="background: url('/img/Portada.png') no-repeat center center fixed; background-size: cover;">
+
+  <div class="position-relative z-1 container-fluid">
+    <!-- Header Section: Clean Frosted Glass Banner -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-left: 6px solid #0d6efd !important;">
+      <div class="d-md-flex align-items-center justify-content-between">
+        <div class="mb-3 mb-md-0">
+          <h2 class="fw-bolder text-dark mb-1 d-flex align-items-center" style="letter-spacing: -0.5px;">
+            📅 Planificación de Jornadas
+          </h2>
+          <p class="text-secondary mb-0">Gestiona, planifica y publica las próximas actividades para tu comunidad de voluntarios.</p>
+        </div>
         <div>
-          <h2 class="fw-bold text-dark">Planificación de Jornadas 🛠️</h2>
-          <p class="text-muted">Como organizador, define las próximas actividades para los voluntarios.</p>
+          <span class="badge bg-primary px-3 py-2.5 rounded-pill fs-6 fw-bold shadow-sm d-inline-flex align-items-center">
+            👤 Rol {{rolApp}}
+          </span>
         </div>
       </div>
+    </div>
 
-      <div *ngIf="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
+    <!-- Loading State -->
+    <div *ngIf="loading" class="row justify-content-center align-items-center" style="min-height: 400px;">
+      <div class="col-auto text-center bg-white p-4 rounded-4 shadow-lg">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+        <p class="text-muted mt-3 fw-medium mb-0">Sincronizando jornadas y configuraciones...</p>
       </div>
+    </div>
 
-      <div *ngIf="!loading">
-        <div class="card border-0 shadow-sm rounded-4">
+    <!-- Error Alert -->
+    <div *ngIf="!loading && error" class="alert alert-danger border-0 shadow-lg rounded-4 p-4 mb-4 d-flex align-items-center">
+      <span class="fs-3 me-3">⚠️</span>
+      <div>
+        <h5 class="alert-heading fw-bold mb-1">Hubo un error</h5>
+        <p class="mb-0 text-danger-emphasis">{{error}} Por favor, recarga la página o contacta soporte.</p>
+      </div>
+    </div>
+
+    <!-- Main Split-Pane Content -->
+    <div *ngIf="!loading" class="row g-4">
+      
+      <!-- LEFT COLUMN: CREATE WORKDAY FORM (High Opacity White Background for High Contrast) -->
+      <div class="col-lg-5 col-xl-4">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-sticky" style="top: 24px; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(10px);">
+          <div class="card-header border-0 p-4 text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+            <div class="d-flex align-items-center">
+              <span class="fs-2 me-3">📝</span>
+              <div>
+                <h4 class="card-title fw-bold mb-0 text-white">Programar Jornada</h4>
+                <small class="text-white-50">Completa la información para publicarla</small>
+              </div>
+            </div>
+          </div>
+          
           <div class="card-body p-4">
-            <h5 class="fw-bold mb-4">Nueva Jornada de Voluntariado</h5>
-            
             <form (ngSubmit)="handleCrear()">
               <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">Nombre de la Actividad</label>
-                  <input type="text" class="form-control rounded-3" [(ngModel)]="nuevaJornada.titulo" name="titulo" placeholder="Ej: Limpieza de Playa Salguero" required>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">Programa Asociado</label>
-                  <select class="form-select rounded-3" [(ngModel)]="nuevaJornada.programa_id" name="programa_id" required>
-                    <option value="">Selecciona un programa...</option>
-                    <option *ngFor="let p of programas" [value]="p.id">{{p.nombre}}</option>
-                  </select>
-                </div>
-
+                <!-- Actividad Nombre -->
                 <div class="col-12">
-                  <label class="form-label fw-bold small">Descripción Detallada</label>
-                  <textarea class="form-control rounded-3" rows="3" [(ngModel)]="nuevaJornada.descripcion" name="descripcion" placeholder="Explica de qué trata la jornada..." required></textarea>
+                  <label class="form-label fw-bold text-dark small mb-1">Título de la Actividad</label>
+                  <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted">🏷️</span>
+                    <input type="text" class="form-control bg-white border-start-0 rounded-end-3 text-dark fw-semibold" 
+                           [(ngModel)]="nuevaJornada.titulo" name="titulo" 
+                           placeholder="Ej: Limpieza de Playa Salguero" required>
+                  </div>
                 </div>
 
-                <div class="col-md-4">
-                  <label class="form-label fw-bold small">Fecha</label>
-                  <input type="date" class="form-control rounded-3" [(ngModel)]="nuevaJornada.fecha" name="fecha" required>
+                <!-- Programa Asociado -->
+                <div class="col-12">
+                  <label class="form-label fw-bold text-dark small mb-1">Programa de Voluntariado</label>
+                  <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted">🚀</span>
+                    <select class="form-select bg-white border-start-0 rounded-end-3 text-dark fw-semibold" 
+                            [(ngModel)]="nuevaJornada.programa_id" name="programa_id" required>
+                      <option value="">Selecciona un programa...</option>
+                      <option *ngFor="let p of programas" [value]="p.id">{{p.nombre}}</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div class="col-md-4">
-                  <label class="form-label fw-bold small">Hora</label>
-                  <input type="time" class="form-control rounded-3" [(ngModel)]="nuevaJornada.hora" name="hora" required>
+                <!-- Descripción -->
+                <div class="col-12">
+                  <label class="form-label fw-bold text-dark small mb-1">Descripción de las Labores</label>
+                  <textarea class="form-control bg-white shadow-sm rounded-3 text-dark fw-medium" rows="3" 
+                            [(ngModel)]="nuevaJornada.descripcion" name="descripcion" 
+                            placeholder="Describe qué harán los voluntarios, punto de encuentro, etc..." required></textarea>
                 </div>
 
-                <div class="col-md-4">
-                  <label class="form-label fw-bold small">Cupos Disponibles</label>
-                  <input type="number" class="form-control rounded-3" [(ngModel)]="nuevaJornada.cupos" name="cupos" min="1" required>
+                <!-- Fecha y Hora -->
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small mb-1">Fecha</label>
+                  <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted">📅</span>
+                    <input type="date" class="form-control bg-white border-start-0 rounded-end-3 text-dark fw-semibold" 
+                           [(ngModel)]="nuevaJornada.fecha" name="fecha" required>
+                  </div>
                 </div>
 
-                <div class="col-md-12">
-                  <label class="form-label fw-bold small">Ciudad / Ubicación</label>
-                  <select class="form-select rounded-3" [(ngModel)]="nuevaJornada.ciudad_id" name="ciudad_id" required>
-                    <option value="">Selecciona una ciudad...</option>
-                    <option *ngFor="let c of ciudades" [value]="c.id">{{c.nombre}}</option>
-                  </select>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small mb-1">Hora de Inicio</label>
+                  <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted">⏰</span>
+                    <input type="time" class="form-control bg-white border-start-0 rounded-end-3 text-dark fw-semibold" 
+                           [(ngModel)]="nuevaJornada.hora" name="hora" required>
+                  </div>
                 </div>
 
+                <!-- Cupos y Ciudad -->
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small mb-1">Cupos Disponibles</label>
+                  <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted">👥</span>
+                    <input type="number" class="form-control bg-white border-start-0 rounded-end-3 text-dark fw-semibold" 
+                           [(ngModel)]="nuevaJornada.cupos" name="cupos" min="1" required>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small mb-1">Ciudad / Ubicación</label>
+                  <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted">📍</span>
+                    <select class="form-select bg-white border-start-0 rounded-end-3 text-dark fw-semibold" 
+                            [(ngModel)]="nuevaJornada.ciudad_id" name="ciudad_id" required>
+                      <option value="">Selecciona ciudad...</option>
+                      <option *ngFor="let c of ciudades" [value]="c.id">{{c.nombre}}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Botón de Publicar -->
                 <div class="col-12 mt-4">
-                  <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm">
-                    Publicar Jornada
+                  <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow py-3 transition-btn">
+                    🚀 Publicar Actividad
                   </button>
                 </div>
               </div>
@@ -72,6 +139,121 @@
         </div>
       </div>
 
+      <!-- RIGHT COLUMN: SEARCHABLE WORKDAY LIST -->
+      <div class="col-lg-7 col-xl-8">
+        <div class="card border-0 shadow-lg rounded-4 p-4" style="background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(10px);">
+          
+          <!-- Search and Filter Bar -->
+          <div class="d-md-flex align-items-center justify-content-between border-bottom pb-4 mb-4">
+            <div class="mb-3 mb-md-0">
+              <h4 class="fw-bold text-dark mb-0">Jornadas Planificadas</h4>
+              <small class="text-secondary fw-semibold">Actividades activas programadas en el sistema</small>
+            </div>
+            <div style="min-width: 280px;">
+              <div class="input-group shadow-sm rounded-3">
+                <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
+                <input type="text" class="form-control bg-white border-start-0 rounded-end-3 text-dark fw-semibold" 
+                       placeholder="Buscar por título, programa o ciudad..." 
+                       [(ngModel)]="busqueda" (input)="filtrarJornadas()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="jornadasFiltradas.length === 0" class="text-center py-5 bg-white rounded-4 p-4 shadow-sm">
+            <span class="display-1 text-muted opacity-50 d-block mb-3">🗓️</span>
+            <h5 class="fw-bold text-dark">No se encontraron jornadas</h5>
+            <p class="text-secondary mb-0">Intenta cambiar el criterio de búsqueda o programa una nueva a la izquierda.</p>
+          </div>
+
+          <!-- Workday Cards Grid -->
+          <div *ngIf="jornadasFiltradas.length > 0" class="row g-3">
+            <div class="col-md-12 col-xl-6" *ngFor="let j of jornadasFiltradas">
+              <div class="card border-0 rounded-4 shadow-sm h-100 hover-card border-start border-primary border-4 bg-white">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                  <div>
+                    <!-- Badges header -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <span class="badge rounded-pill bg-primary px-3 py-2 text-white fw-bold shadow-sm small">
+                        {{ getProgramaNombre(j.programa_id) }}
+                      </span>
+                      <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis px-2.5 py-1.5 small fw-bold">
+                        👥 {{ j.cupos }} Cupos
+                      </span>
+                    </div>
+
+                    <!-- Title & Desc -->
+                    <h5 class="card-title fw-bold text-dark mb-2">{{ j.titulo }}</h5>
+                    <p class="card-text text-secondary text-truncate-2 small mb-4">{{ j.descripcion }}</p>
+                  </div>
+
+                  <!-- Info and action row -->
+                  <div>
+                    <div class="d-flex align-items-center justify-content-between border-top pt-3 small fw-semibold">
+                      <div class="d-flex flex-column gap-1 text-secondary">
+                        <span class="text-dark">📅 {{ j.fecha }}</span>
+                        <span class="text-dark">⏰ {{ j.hora }}</span>
+                        <span class="text-dark">📍 {{ getCiudadNombre(j.ciudad_id) }}</span>
+                      </div>
+                      
+                      <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-2 shadow-sm delete-btn" 
+                              (click)="handleBorrar(j.id)" title="Eliminar Jornada">
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
+
+<!-- Styles for enhanced animations and responsiveness -->
+<style>
+  .backdrop-blur {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 .75rem 2rem rgba(0,0,0,.15)!important;
+  }
+  .text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
+  }
+  .delete-btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .delete-btn:hover {
+    background-color: #dc3545;
+    color: white !important;
+    border-color: #dc3545;
+    transform: scale(1.1);
+  }
+  .transition-btn {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+  .transition-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4) !important;
+  }
+</style>
+
+

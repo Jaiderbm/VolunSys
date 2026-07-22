@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-perfil',
@@ -11,6 +12,7 @@ import { ApiService } from '../../services/api.service';
 })
 export class PerfilComponent implements OnInit {
   private apiService = inject(ApiService);
+  private router = inject(Router);
 
   usuario: any = {
     nombre: "Cargando...",
@@ -24,8 +26,21 @@ export class PerfilComponent implements OnInit {
   loading = true;
 
   async ngOnInit() {
+    if (typeof window === 'undefined') {
+      return;
+    }
     try {
-      const usuarioId = localStorage.getItem("usuarioId") || "1";
+      const usuarioId = localStorage.getItem("usuarioId");
+      if (!usuarioId || usuarioId === "undefined" || usuarioId === "null") {
+        this.router.navigate(['/login']);
+        return;
+      }
+      
+      const rolLocal = localStorage.getItem("rol");
+      if (rolLocal) {
+        this.usuario.rol = rolLocal;
+      }
+
       const data = await this.apiService.getUsuario(usuarioId);
       if (data) {
         this.usuario = { ...this.usuario, ...data };

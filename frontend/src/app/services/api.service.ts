@@ -130,4 +130,8 @@ export class ApiService {
   async getStats(): Promise<any> {
     return lastValueFrom(this.http.get(`${this.FASTAPI}/api/stats`));
   }
+
+  async eliminarVoluntariado(id: any): Promise<any> {
+    return lastValueFrom(this.http.delete(`${this.FASTAPI}/api/voluntariados/${id}`));
+  }
 }

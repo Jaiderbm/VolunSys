@@ -1,45 +1,163 @@
-<div class="container py-5">
-  <div class="row mb-4">
-    <div class="col">
-      <h2 class="fw-bold">✍️ Asignación de Actividades</h2>
-      <p class="text-muted">Asigna roles específicos a los voluntarios que se han inscrito en las jornadas.</p>
+<div class="asignaciones-bg">
+  <div class="asignaciones-overlay"></div>
+  
+  <div class="container asignaciones-content">
+    
+    <!-- Encabezado Principal -->
+    <div class="row align-items-center mb-4 text-white">
+      <div class="col-md-7 mb-3 mb-md-0">
+        <span class="badge bg-primary bg-gradient rounded-pill px-3 py-2 fs-6 mb-2 shadow-sm">
+          ✍️ Panel Organizador
+        </span>
+        <h1 class="display-5 fw-bolder mb-2 text-white" style="letter-spacing: -0.5px;">
+          Asignación de Actividades
+        </h1>
+        <p class="text-white-50 fs-5 mb-0">
+          Designa roles específicos y responsabilidades a los voluntarios inscritos en las jornadas.
+        </p>
+      </div>
+      
+      <!-- Buscador -->
+      <div class="col-md-5">
+        <div class="input-group input-group-lg search-input-glass rounded-pill overflow-hidden">
+          <span class="input-group-text border-0 bg-transparent ps-4 text-muted">🔍</span>
+          <input type="text" class="form-control border-0 bg-transparent shadow-none fs-6" 
+                 placeholder="Buscar por voluntario, programa o tarea..." 
+                 [(ngModel)]="busqueda" (input)="filtrarInscripciones()">
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border text-primary" role="status"></div>
-  </div>
-
-  <div *ngIf="error" class="alert alert-danger">{{error}}</div>
-
-  <div *ngIf="!loading && !error" class="row g-4">
-    <div *ngFor="let i of inscripciones" class="col-md-6 col-lg-4">
-      <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-body p-4">
-          <div class="d-flex justify-content-between align-items-start mb-3">
-            <span class="badge bg-light text-primary border rounded-pill px-3">{{i.voluntariado}}</span>
-            <span class="text-muted small">{{i.fecha}}</span>
+    <!-- Barra de Métricas Rápidas -->
+    <div class="row g-3 mb-5">
+      <div class="col-md-4">
+        <div class="stat-box p-4 d-flex align-items-center shadow-sm">
+          <div class="fs-1 me-3 p-3 bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width:60px; height:60px;">
+            👥
           </div>
-          <h5 class="fw-bold mb-1">{{i.usuario}}</h5>
-          <p class="text-muted small mb-3">Estado: <span class="fw-bold">{{i.estado || 'Pendiente'}}</span></p>
-          
-          <div class="border-top pt-3">
-            <label class="form-label small fw-bold text-muted">Tarea Asignada:</label>
-            <div *ngIf="i.tarea" class="alert alert-info py-2 px-3 rounded-pill small mb-2 d-flex justify-content-between align-items-center">
-              <span>✨ {{i.tarea}}</span>
-            </div>
-            
-            <select class="form-select form-select-sm rounded-3 mb-2" (change)="handleAsignar(i.id, $event)">
-              <option value="">{{i.tarea ? 'Cambiar tarea...' : 'Asignar nueva tarea...'}}</option>
-              <option *ngFor="let t of tareasSugeridas" [value]="t">{{t}}</option>
-            </select>
+          <div>
+            <h6 class="text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Total Inscritos</h6>
+            <h2 class="fw-bolder mb-0 text-white">{{getTotalCount()}}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-box p-4 d-flex align-items-center shadow-sm">
+          <div class="fs-1 me-3 p-3 bg-success bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width:60px; height:60px;">
+            ✨
+          </div>
+          <div>
+            <h6 class="text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Tareas Asignadas</h6>
+            <h2 class="fw-bolder mb-0 text-success-subtle">{{getAsignadosCount()}}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-box p-4 d-flex align-items-center shadow-sm">
+          <div class="fs-1 me-3 p-3 bg-warning bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width:60px; height:60px;">
+            ⏳
+          </div>
+          <div>
+            <h6 class="text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Por Asignar</h6>
+            <h2 class="fw-bolder mb-0 text-warning-subtle">{{getPendientesCount()}}</h2>
           </div>
         </div>
       </div>
     </div>
 
-    <div *ngIf="inscripciones.length === 0" class="col-12 text-center text-muted py-5">
-      No hay inscripciones registradas en el sistema.
+    <!-- Alerta de Éxito -->
+    <div *ngIf="mensajeExito" class="alert alert-success border-0 shadow-lg rounded-4 p-3 mb-4 d-flex align-items-center text-white" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+      <span class="fs-4 me-3">🎉</span>
+      <span class="fw-bold">{{mensajeExito}}</span>
     </div>
+
+    <!-- State Loading & Error -->
+    <div *ngIf="loading" class="text-center py-5 text-white">
+      <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+      <p class="mt-3 fw-bold">Cargando lista de voluntarios e inscripciones...</p>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger rounded-4 shadow border-0 p-4 text-center fw-bold fs-5">
+      ⚠️ {{error}}
+    </div>
+
+    <!-- Grid de Voluntarios -->
+    <div *ngIf="!loading && !error" class="row g-4">
+      <div *ngFor="let i of inscripcionesFiltradas" class="col-md-6 col-lg-4">
+        <div class="card glass-card-task h-100 border-0">
+          <div class="card-body p-4 d-flex flex-column">
+            
+            <!-- Header con Avatar y Programa -->
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="d-flex align-items-center">
+                <div class="user-avatar-circle me-3">
+                  {{getInitials(i.usuario)}}
+                </div>
+                <div>
+                  <h5 class="fw-bold mb-0 text-dark">{{i.usuario}}</h5>
+                  <span class="text-muted small">ID: #{{i.id}}</span>
+                </div>
+              </div>
+              <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                    [ngClass]="i.tarea ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-dark border border-warning-subtle'">
+                {{i.tarea ? '✓ Asignado' : '⏳ Pendiente'}}
+              </span>
+            </div>
+
+            <!-- Información del Programa e Inscripción -->
+            <div class="bg-light bg-opacity-75 p-3 rounded-3 mb-3 border border-light-subtle">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted small fw-bold text-uppercase">Programa</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold rounded-pill px-2 py-1 small">
+                  {{i.voluntariado}}
+                </span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Fecha Registro:</span>
+                <span class="small fw-semibold text-dark">{{i.fecha}}</span>
+              </div>
+            </div>
+            
+            <!-- Sección Tarea Asignada -->
+            <div class="mt-auto pt-2">
+              <label class="form-label small fw-bold text-uppercase text-secondary mb-2">
+                📌 Tarea / Rol Operativo:
+              </label>
+              
+              <div *ngIf="i.tarea" class="p-3 mb-3 rounded-3 bg-info bg-opacity-10 border border-info border-opacity-25 d-flex align-items-center">
+                <span class="fs-5 me-2">✨</span>
+                <div>
+                  <div class="fw-bold text-info-emphasis">{{i.tarea}}</div>
+                  <small class="text-muted">Rol confirmado para esta jornada</small>
+                </div>
+              </div>
+
+              <!-- Selector de Tarea -->
+              <div class="position-relative">
+                <select class="form-select form-select-lg rounded-pill shadow-sm border-0 bg-white text-dark fw-semibold" 
+                        style="font-size: 0.95rem;"
+                        (change)="handleAsignar(i.id, $event)">
+                  <option value="">{{i.tarea ? '🔄 Cambiar tarea asignada...' : '➕ Seleccionar nueva tarea...'}}</option>
+                  <option *ngFor="let t of tareasSugeridas" [value]="t" [selected]="t === i.tarea">
+                    {{t}}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- No Results State -->
+      <div *ngIf="inscripcionesFiltradas.length === 0" class="col-12 text-center py-5">
+        <div class="p-5 glass-card-task rounded-4 d-inline-block text-white" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);">
+          <div class="fs-1 mb-3">🔍</div>
+          <h4 class="fw-bold">No se encontraron voluntariados o inscripciones</h4>
+          <p class="text-white-50 mb-0">Prueba ajustando el término de búsqueda o registra nuevos voluntarios en el sistema.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

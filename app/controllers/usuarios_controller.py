@@ -17,18 +17,23 @@ def crear_usuario(data):
     cursor = conn.cursor()
     hashed_pwd = hash_password(data.get("password", "123456"))
     
-    rol_id = data.get("rol_id", 3)
+    raw_rol = data.get("rol_id", 3)
+    try:
+        rol_id = int(raw_rol)
+    except (ValueError, TypeError):
+        rol_id = 3
+
     try:
         cursor.execute("""
             INSERT INTO usuarios 
             (nombre, apellido, email, telefono, tipo_documento_id, numero_documento, rol_id, password)
             VALUES (%s, %s, %s, %s, 1, %s, %s, %s)
         """, (
-            data.get("nombre", ""),
-            data.get("apellido", ""),
-            data.get("email", ""),
-            data.get("telefono", ""),
-            data.get("numero_documento", "000"),
+            data.get("nombre", "").strip(),
+            data.get("apellido", "").strip(),
+            data.get("email", "").strip(),
+            data.get("telefono", "").strip(),
+            data.get("numero_documento", "").strip(),
             rol_id,
             hashed_pwd
         ))
@@ -39,7 +44,9 @@ def crear_usuario(data):
         return {"success": False, "message": "El documento o el correo ingresados ya han sido registrados. Por favor, intente con otros."}
     except Exception as e:
         conn.rollback()
-        return {"success": False, "message": "Error interno al guardar. Contactar soporte."}
+        return {"success": False, "message": f"Error al crear usuario: {str(e)}"}
+    finally:
+        cursor.close()
 
 def actualizar_usuario(id, data):
     # simplificado
