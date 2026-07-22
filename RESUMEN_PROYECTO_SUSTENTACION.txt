@@ -1,121 +1,182 @@
 ================================================================================
-                    GUÍA DE SUSTENTACIÓN Y ARQUITECTURA - VOLUNSYS
+          DOCUMENTACIÓN TÉCNICA EXHAUSTIVA Y GUÍA PARA MODELO RAG
+                          PROYECTO VOLUNSYS (2026)
 ================================================================================
 
-1. ¿QUÉ ES VOLUNSYS?
+1. VISIÓN GENERAL Y DOMINIO DEL SISTEMA (VOLUNSYS)
 --------------------------------------------------------------------------------
-VolunSys es una plataforma web integral para la gestión de proyectos de voluntariado 
-y jornadas de impacto social (limpieza de playas, rescate animal, acompañamiento 
-a adultos mayores). 
+Nombre del Sistema: VolunSys (Sistema de Gestión de Voluntariado e Impacto Social)
+Propósito: Plataforma web interactiva orientada a la gestión, organización y seguimiento 
+de jornadas de voluntariado en tres frentes de impacto comunitario:
+  1. Limpieza y Conservación de Playas (Sostenibilidad y medio ambiente).
+  2. Rescate y Cuidado Animal (Atención veterinaria y adopción de mascotas).
+  3. Acompañamiento a Adultos Mayores (Apoyo emocional y actividades lúdicas).
 
-Permite a los ciudadanos registrarse como voluntarios, inscribirse en eventos, y a 
-los coordinadores y administradores gestionar tareas, usuarios y métricas de impacto.
+Modelo de Usuarios y Control de Acceso Basado en Roles (RBAC):
+  • Rol 1 - Administrador General (Admin):
+    - Acceso total a la plataforma.
+    - Control de usuarios (crear, modificar rol, retirar usuarios).
+    - Visualización de analítica avanzada en Microsoft PowerBI.
+    - Auditoría y reportes globales de basura recolectada, animales rescatados y adultos atendidos.
+  • Rol 2 - Coordinador / Organizador:
+    - Creación y planificación de jornadas de voluntariado.
+    - Asignación de tareas operativas específicas a los voluntarios inscritos.
+    - Seguimiento del cumplimiento de actividades por proyecto.
+  • Rol 3 - Voluntario (Usuario Final / Ciudadano):
+    - Registro de cuenta mediante Formulario Reactivo seguro.
+    - Inscripción activa a programas y jornadas comunitarias.
+    - Marcado de asistencia a eventos.
+    - Consulta de tareas asignadas en su panel personal.
 
 
-2. ARQUITECTURA GENERAL DEL SISTEMA
+2. ARQUITECTURA DE SOFTWARE Y STACK TECNOLÓGICO
 --------------------------------------------------------------------------------
-El sistema está construido bajo una arquitectura de microservicios y capas desacopladas:
+El proyecto sigue una arquitectura de Microservicios y Capas Desacopladas:
 
-  ┌─────────────────────────┐
-  │  Frontend (Angular 19)  │  --> Puerto 4200 (Interfaz de usuario)
-  └────────────┬────────────┘
-               │
-       ┌───────┴────────────────────────────────┐
-       ▼                                        ▼
-  ┌───────────────────────────┐   ┌──────────────────────────┐
-  │ Backend API (FastAPI)     │   │ Microservicio Ubicaciones│
-  │ Puerto 8000 (Python)      │   │ Puerto 3001 (Node.js)    │
-  └────────────┬──────────────┘   └──────────────────────────┘
-               │
-               ▼
-  ┌───────────────────────────┐
-  │ BD PostgreSQL (Neon Cloud)│
-  └───────────────────────────┘
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                    FRONTEND: Angular 19+ (Standalone)                   │
+  │                      Puerto: http://localhost:4200                     │
+  └───────────────────┬────────────────────────────────┬───────────────────┘
+                      │                                │
+                      ▼ (HTTP REST APIs)               ▼ (HTTP REST APIs)
+  ┌────────────────────────────────────────┐   ┌───────────────────────────┐
+  │  BACKEND PRINCIPAL: FastAPI (Python)   │   │ MICROSERVICIO UBICACIONES │
+  │    Puerto: http://127.0.0.1:8000       │   │  Express (Node.js) - 3001 │
+  └───────────────────┬────────────────────┘   └───────────────────────────┘
+                      │ (SQLAlchemy ORM)
+                      ▼
+  ┌────────────────────────────────────────┐
+  │ BASE DE DATOS: PostgreSQL (Neon Cloud) │
+  └────────────────────────────────────────┘
 
-
-3. ESTRUCTURA DE CARPETAS Y DÓNDE ESTÁ CADA LÓGICA
---------------------------------------------------------------------------------
-
-📂 FRONTEND (Angular 19 Standalone): Ubicado en `/frontend/src/app/`
-
-  • pages/registro/
-    --> CONTINE EL FORMULARIO REACTIVO (registroForm, FormBuilder, Validators).
-    --> Archivos: registro.component.ts y registro.component.html
-    --> Explicación: Lógica de validación 100% en TypeScript para correo, requeridos 
-        y contraseña segura (mínimo 8 caracteres, mayúscula, minúscula y número).
-
-  • pages/organizador/asignaciones/
-    --> Módulo de asignación de tareas con diseño Glassmorphic (fondo translúcido).
-    --> Archivos: asignaciones.component.ts, .html y .css
-    --> Permite a los coordinadores asignar roles específicos (Logística, Primeros 
-        Auxilios, etc.) a los voluntarios.
-
-  • pages/usuarios/
-    --> Gestión de usuarios y Roles (RBAC: Admin, Coordinador, Voluntario).
-    --> Archivos: usuarios.component.ts y .html
-
-  • pages/playas/, pages/rescate/, pages/adultos/
-    --> Módulos temáticos con tarjetas contenidas (cards), tablas históricas 
-        y formularios de registro rápido.
-
-  • pages/powerbi/
-    --> Dashboard para visualización analítica e impacto de proyectos.
-
-  • services/api.service.ts
-    --> Servicio centralizado de comunicación HTTP que conecta Angular con la API 
-        FastAPI (8000) y el Microservicio de Ubicaciones (3001).
-
-  • components/
-    --> Componentes reutilizables: navbar (navegación), footer (pie de página) 
-        y chatbot (asistente virtual).
+Detalle de Tecnologías:
+  - Frontend: Angular 19 (Componentes Standalone, RxJS, Reactive Forms, Bootstrap 5.3, Vanilla CSS3 Glassmorphism).
+  - Backend API: FastAPI (Python 3.11+), Uvicorn Server, Pydantic para esquemas de datos, SQLAlchemy para ORM, PyJWT para autenticación con tokens Bearer JWT, Passlib/Bcrypt para hash de contraseñas.
+  - Microservicio Ubicaciones: Node.js + Express.js para consultar municipios y ciudades de Colombia.
+  - Base de Datos Cloud: PostgreSQL alojado en la plataforma Neon Cloud (Serverless Postgres).
+  - Módulo de IA / RAG: Integración con modelos LLM mediante controladores FastAPI (`app/controllers/chat_controller.py`) para asistencia automatizada.
 
 
-📂 BACKEND PRINCIPAL (FastAPI - Python): Ubicado en `/app/`
-
-  • app/main.py
-    --> Archivo principal de entrada de FastAPI, configuración de CORS y rutas base.
-
-  • app/controllers/
-    --> Lógica de negocio por entidad:
-        - usuario_controller.py (Autenticación y registro de usuarios)
-        - voluntariado_controller.py (Gestión de proyectos y actividades)
-        - inscripcion_controller.py (Inscripciones y asignaciones de tareas)
-
-  • app/config/security.py
-    --> Hash de contraseñas con bcrypt, JWT (tokens de sesión) y verificación de roles.
-
-  • app/config/database.py
-    --> Conexión a PostgreSQL alojada en la nube (Neon Cloud).
-
-
-📂 MICROSERVICIO DE UBICACIONES (Node.js + Express): Ubicado en `/microservicio_ubicaciones/`
-
-  • index.js
-    --> Microservicio independiente que corre en el puerto 3001 y retorna la lista 
-        de ciudades y municipios disponibles para las jornadas.
-
-
-4. CONCEPTOS CLAVE PARA SUSTENTAR AL PROFESOR
+3. ESTRUCTURA COMPLETA DE CARPETAS Y MAPEO DE CÓDIGO
 --------------------------------------------------------------------------------
 
-A) FORMULARIO REACTIVO (Reactive Form):
-   - Ubicación: `src/app/pages/registro/registro.component.ts`
-   - ¿Qué responder?: "Implementamos un Formulario Reactivo usando ReactiveFormsModule, 
-     FormBuilder, FormGroup y Validators. A diferencia del enfoque Template-Driven (ngModel), 
-     la lógica de validación reside en el código TypeScript (registroForm), lo que permite 
-     validar datos en tiempo real (formControlName), manejar estados (valid/invalid/touched) 
-     y desacoplar la interfaz de la lógica de control."
+📂 FRONTEND (`frontend/src/app/`)
+  ├── app.ts / app.html / app.routes.ts / app.config.ts:
+      Configuración global de rutas, proveedores HttpClient y registro de Chart.js.
+  
+  ├── pages/registro/ (FORMULARIO REACTIVO PRINCIPAL)
+      • registro.component.ts: Implementa `ReactiveFormsModule`, `FormBuilder`, `FormGroup` y `Validators`.
+        Reglas de validación:
+        - Nombre y Apellido: Requeridos.
+        - Número de Documento: Requerido (clave de identidad).
+        - Email: Requerido + `Validators.email`.
+        - Password: Requerido + Mínimo 8 caracteres + Regex `(?=.*\d)(?=.*[a-z])(?=.*[A-Z])` (Mayúscula, Minúscula y Número).
+      • registro.component.html: Vinculación con `[formGroup]` y `formControlName`, alertas de error en tiempo real.
 
-B) CONTROL DE ACCESO BASADO EN ROLES (RBAC):
-   - Rol 1: Administrador (Acceso total, gestión de usuarios y métricas).
-   - Rol 2: Coordinador / Organizador (Planificación de jornadas y asignación de tareas).
-   - Rol 3: Voluntario (Exploración de proyectos, inscripción y marcar asistencia).
+  ├── pages/login/
+      • Autenticación con correo y contraseña. Genera sesión en `localStorage` con JWT y rol asignado.
 
-C) ARQUITECTURA DE DESPLIEGUE:
-   - El archivo `run_project.bat` en la raíz permite ejecutar automáticamente los 3 servicios 
-     en paralelo en ventanas independientes.
+  ├── pages/organizador/asignaciones/ (DISEÑO GLASSMORPHISM)
+      • asignaciones.component.html / .ts / .css:
+        Interfaz para asignación de tareas a voluntarios inscritos.
+        Estilo visual: Fondo con imagen transparente (`https://images.unsplash.com/photo-1559027615-cd4628902d4a`), 
+        tarjetas estilo cristal translúcido (Glassmorphism), barra de métricas (Total, Asignados, Pendientes) 
+        y buscador interactivo en tiempo real.
 
+  ├── pages/organizador/planificacion/
+      • Formulario para que Admin o Coordinadores creen nuevas jornadas de voluntariado.
+
+  ├── pages/usuarios/
+      • Centro de control RBAC. Permite a los Administradores listar usuarios, cambiar roles 
+        (Voluntario=3, Coordinador=2, Admin=1) y retirar usuarios.
+
+  ├── pages/playas/, pages/rescate/, pages/adultos/
+      • Páginas temáticas de proyectos sociales con tablas de registros históricos, mapas 
+        y tarjetas de inscripción directa.
+
+  ├── pages/powerbi/
+      • Dashboard analítico integrado de Microsoft PowerBI para visualización de impacto.
+
+  ├── services/api.service.ts
+      • Servicio HTTP centralizado que encauza todas las peticiones hacia FastAPI (`http://127.0.0.1:8000`) 
+        y el Microservicio de Ubicaciones (`http://localhost:3001`).
+
+  ├── components/chatbot/
+      • Componente flotante de asistente virtual listo para conectarse al modelo RAG.
+
+
+📂 BACKEND FASTAPI (`app/`)
+  ├── main.py:
+      Inicialización de FastAPI, configuración de Middleware CORS y registro de routers.
+
+  ├── config/
+      • database.py: Conexión a Neon PostgreSQL mediante URI.
+      • security.py: Generación/Verificación de JWT y hash de claves con Bcrypt.
+
+  ├── controllers/
+      • usuarios_controller.py: Lógica de CRUD y autenticación de usuarios.
+      • voluntariados_controller.py: Gestión de eventos, cupos y categorías.
+      • inscripcion_controller.py: Registro de asistencias y asignaciones de roles operativos.
+      • chat_controller.py: Punto de contacto para el motor de IA / RAG.
+
+  ├── models/
+      • Modelos relacionales de SQLAlchemy (Tablas: `usuarios`, `roles`, `voluntariados`, `inscripciones`, `tareas`).
+
+📂 MICROSERVICIO UBICACIONES (`microservicio_ubicaciones/`)
+  ├── index.js: Servidor Express en puerto 3001 que sirve el catálogo de ciudades.
+
+📂 SCRIPTS DE EJECUCIÓN (`run_project.bat`)
+  ├── Script Batch que limpia caché (Python & Angular) y lanza los 3 servicios simultáneamente 
+      en ventanas de comandos dedicadas.
+
+
+4. INFORMACIÓN ESPECÍFICA PARA LA INTEGRACIÓN CON EL MODELO RAG (Retrieval-Augmented Generation)
+--------------------------------------------------------------------------------
+Este apartado detalla el contexto necesario para alimentarlo a tu Vector Database (Pinecone, ChromaDB, FAISS, LlamaIndex o LangChain) para que el modelo RAG pueda responder preguntas sobre VolunSys:
+
+A) Contexto de Conocimiento del RAG:
+   - ¿Qué es VolunSys?: Sistema de voluntariado multipartito en Colombia.
+   - Programas Activos:
+     1. Limpieza de Playas: Misión de recolección de basura en kg (Ej: Playa Salguero).
+     2. Rescate Animal: Vacunación, atención médica y adopción de perros y gatos callejeros.
+     3. Adultos Mayores: Bingo solidario, apoyo emocional y acompañamiento en asilos.
+   - Roles y Permisos en el RAG:
+     Si el usuario le pregunta al RAG: "¿Puedo asignar tareas?", el RAG debe verificar si el rol es Admin (1) o Coordinador (2). Si es Voluntario (3), le indicará que solo puede inscribirse y ver sus tareas asignadas.
+
+B) Integración Técnica de la API con el RAG:
+   - Endpoint del RAG en el Backend: `POST /api/chat` en `app/controllers/chat_controller.py`.
+   - Flujo de Recuperación:
+     1. El usuario escribe una consulta en `app-chatbot`.
+     2. El Frontend envía la pregunta a `/api/chat`.
+     3. El controlador consulta el Vector Store con embeddings de este documento (`RESUMEN_PROYECTO_SUSTENTACION.txt`).
+     4. El LLM genera una respuesta precisa basada en las reglas del negocio de VolunSys.
+
+
+5. GUION DE SUSTENTACIÓN ACADÉMICA (RESPUESTAS A PREGUNTAS DEL PROFESOR)
+--------------------------------------------------------------------------------
+
+Pregunta 1: "¿Por qué utilizaste un Formulario Reactivo en el Registro y no un Template-Driven Form?"
+  Respuesta: "Profesor, implementamos un Formulario Reactivo (`registroForm`) en el registro porque 
+  proporciona inmutabilidad y control sobre los flujos de datos. La lógica de validación se define 
+  explícitamente en la clase TypeScript mediante `FormBuilder` y `Validators` (incluyendo regex 
+  para contraseña segura y formato de email). Esto nos permite evaluar el estado del formulario 
+  (`valid`, `invalid`, `touched`) en tiempo real, mostrar mensajes de error precisos antes de enviar 
+  la petición a FastAPI y facilitar la creación de pruebas unitarias aisladas."
+
+Pregunta 2: "¿Cómo está estructurada la arquitectura de tu aplicación y cómo se comunican las partes?"
+  Respuesta: "La aplicación utiliza una arquitectura desacoplada basada en microservicios. 
+  El Frontend es una Single Page Application (SPA) en Angular 19. Se comunica mediante peticiones 
+  HTTP REST con nuestro Backend API en FastAPI (Python), el cual gestiona la lógica de negocio, 
+  autenticación JWT y la base de datos PostgreSQL alojada en la nube (Neon Cloud). Adicionalmente, 
+  tenemos un microservicio independiente en Node.js/Express para la gestión de ubicaciones."
+
+Pregunta 3: "¿Cómo encaja el Modelo RAG (Retrieval-Augmented Generation) en tu proyecto?"
+  Respuesta: "El modelo RAG actúa como un asistente inteligente contextual. Utiliza embeddings 
+  de la documentación y estado del sistema (eventos, tareas, perfiles) para alimentar un modelo 
+  de lenguaje (LLM). Cuando un voluntario o coordinador interactúa con el Chatbot de VolunSys, 
+  el sistema recupera el contexto relevante de la base de datos vectorial y genera respuestas 
+  personalizadas sobre disponibilidad de cupos, asignaciones de tareas o guías de registro."
 
 ================================================================================
-                       FIN DEL RESUMEN DE SUSTENTACIÓN
+                       FIN DEL DOCUMENTO TÉCNICO RAG
 ================================================================================
