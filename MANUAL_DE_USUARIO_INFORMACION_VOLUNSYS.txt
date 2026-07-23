@@ -1,0 +1,426 @@
+================================================================================
+           FICHA TÉCNICA Y MAESTRO DE INFORMACIÓN DEL SISTEMA
+                             VOLUNSYS
+    DOCUMENTO DE REFERENCIA COMPLETO PARA EL MANUAL DE USUARIO (30 PÁGINAS)
+================================================================================
+
+PROYECTO: VolunSys - Plataforma Web de Gestión de Voluntariado e Impacto Social
+INSTITUCIÓN: Proyecto Académico Universitario de Ingeniería de Sistemas / Software
+VERSIÓN DEL SISTEMA: 1.0.0
+AUTORES / DESARROLLADORES: Equipo VolunSys
+
+--------------------------------------------------------------------------------
+1. RESUMEN EJECUTIVO Y ARQUITECTURA DEL SISTEMA
+--------------------------------------------------------------------------------
+VolunSys es una plataforma web integral diseñada para la gestión, organización, 
+seguimiento e impacto social de jornadas de voluntariado en Colombia. La plataforma 
+conecta a tres actores clave: Voluntarios, Coordinadores/Organizadores de eventos y 
+Administradores del sistema.
+
+Componentes de la Arquitectura Tecnológica:
+1. Frontend Client (SPA): Desarrollado en Angular 19 con Componentes Standalone,
+   Formularios Reactivos, RxJS, Bootstrap 5.3 y Estilos Personalizados Glassmorphism.
+   Puerto local de ejecución: 4200 (http://localhost:4200).
+2. Backend Principal (REST API): Desarrollado en Python 3.11+ utilizando FastAPI,
+   Uvicorn, Pydantic, SQLAlchemy, PyJWT (autenticación mediante tokens JWT) y Bcrypt.
+   Puerto local de ejecución: 8000 (http://127.0.0.1:8000).
+3. Microservicio de Ubicaciones: Desarrollado en Node.js con Express, encargado de 
+   proveer datos geográficos de departamentos y ciudades.
+   Puerto local de ejecución: 3001 (http://localhost:3001).
+4. Base de Datos Relacional: PostgreSQL Serverless alojada en Neon Cloud.
+5. Motor de Inteligencia Artificial (RAG - Retrieval-Augmented Generation):
+   - Sistema de Embeddings: HuggingFace (modelo sentence-transformers/all-MiniLM-L6-v2).
+   - Base de Datos Vectorial: ChromaDB (almacenamiento persistente en disco).
+   - Modelo de Lenguaje Lógico (LLM): Groq Cloud API ejecutando Llama 3.3 70B Versatile.
+   - Componente UI: Asistente Virtual Inteligente "VolunBot".
+
+--------------------------------------------------------------------------------
+2. MATRIZ DE CONTROL DE ACCESO BASADO EN ROLES (RBAC)
+--------------------------------------------------------------------------------
+El sistema implementa tres roles claramente delimitados para garantizar la seguridad 
+y privacidad de la información:
+
+ROL 1: ADMINISTRADOR DEL SISTEMA (rol_id = 1)
+- Permisos completos de lectura, creación, actualización y eliminación (CRUD) sobre usuarios.
+- Asignación y cambio de roles de usuarios (Voluntario, Organizador, Administrador).
+- Activación y desactivación de cuentas de usuario.
+- Acceso al módulo de Inteligencia de Negocios y Métricas Globales (PowerBI).
+- Visualización de registros de audibilidad y estadísticas generales.
+
+ROL 2: COORDINADOR / ORGANIZADOR (rol_id = 2)
+- Acceso al módulo de Planificación de Jornadas de Voluntariado.
+- Creación, modificación y desactivación de eventos/jornadas asignados a su programa.
+- Acceso al módulo de Asignaciones: visualización de voluntarios inscritos en sus jornadas.
+- Asignación de tareas específicas a los voluntarios inscritos.
+- Marcado de asistencia de voluntarios e ingreso de horas sociales/comunitarias completadas.
+- Registro de observaciones por participante.
+
+ROL 3: VOLUNTARIO (rol_id = 3)
+- Registro público en la plataforma mediante formulario reactivo de inscripción.
+- Navegación por la landing page y páginas especializadas de los tres programas sociales.
+- Exploración de la oferta de voluntariados disponibles con filtros por programa, fecha y ciudad.
+- Inscripción autónoma a jornadas de voluntariado con cupos disponibles.
+- Acceso a la sección "Mis Inscripciones" para consultar estado y tareas asignadas.
+- Cancelación de inscripciones a jornadas pendientes.
+- Consulta de su perfil personal y total de horas sociales comunitarias acumuladas.
+- Interacción con el Asistente Virtual VolunBot.
+
+--------------------------------------------------------------------------------
+3. DICCIONARIO COMPLETO DE LA BASE DE DATOS (NEON POSTGRESQL)
+--------------------------------------------------------------------------------
+A continuación se detalla la estructura física exacta de las tablas de la base de datos:
+
+TABLA 1: `usuarios`
+- `id` (INTEGER, PRIMARY KEY, AUTO-INCREMENT): Identificador único del usuario.
+- `nombre` (VARCHAR(100), NOT NULL): Nombres del usuario.
+- `apellido` (VARCHAR(100), NOT NULL): Apellidos del usuario.
+- `email` (VARCHAR(150), UNIQUE, NOT NULL): Correo electrónico (utilizado para el Login).
+- `telefono` (VARCHAR(20), NULLABLE): Número de contacto telefónico.
+- `tipo_documento_id` (INTEGER, NOT NULL): Referencia al tipo de documento (CC, CE, PAS).
+- `numero_documento` (VARCHAR(30), UNIQUE, NOT NULL): Número oficial de identificación.
+- `rol_id` (INTEGER, NOT NULL, FOREIGN KEY -> roles.id): Rol asignado (1: Admin, 2: Org, 3: Voluntario).
+- `ciudad_id` (INTEGER, NULLABLE): Referencia a la ciudad de residencia.
+- `estado` (BOOLEAN, DEFAULT TRUE): Estado de la cuenta (TRUE = Activo, FALSE = Inactivo).
+- `fecha_registro` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP): Fecha y hora de creación.
+- `password` (VARCHAR(255), NOT NULL): Hash encriptado de la contraseña con Bcrypt.
+
+TABLA 2: `programas`
+- `id` (INTEGER, PRIMARY KEY, AUTO-INCREMENT): Identificador del programa social.
+- `nombre` (VARCHAR(100), NOT NULL): Nombre del programa (Ej: Limpieza de Playas, Rescate Animal, Adultos Mayores).
+- `descripcion` (TEXT, NOT NULL): Descripción detallada del propósito del programa.
+- `estado` (BOOLEAN, DEFAULT TRUE): Indicador de si el programa está activo.
+- `creado` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP): Fecha de creación del programa.
+
+TABLA 3: `voluntariados`
+- `id` (INTEGER, PRIMARY KEY, AUTO-INCREMENT): Identificador único de la jornada de voluntariado.
+- `proyecto_id` (INTEGER, FOREIGN KEY -> programas.id): Programa al que pertenece la jornada.
+- `tipo_voluntariado_id` (INTEGER, NULLABLE): Clasificación del tipo de actividad.
+- `titulo` (VARCHAR(150), NOT NULL): Título o nombre de la jornada (Ej: "Jornada de Limpieza Playa Salgar").
+- `descripcion` (TEXT, NOT NULL): Detalle de las actividades a realizar y punto de encuentro.
+- `fecha` (DATE, NOT NULL): Fecha programada para la realización de la jornada.
+- `hora` (TIME, NOT NULL): Hora de inicio de la actividad.
+- `ciudad_id` (INTEGER, NOT NULL): Ciudad donde se llevará a cabo la jornada.
+- `cupos` (INTEGER, NOT NULL): Número máximo de voluntarios permitidos.
+- `estado` (BOOLEAN, DEFAULT TRUE): Estado del evento (TRUE = Disponible, FALSE = Concluido/Cancelado).
+- `creado` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP): Fecha de registro del evento.
+
+TABLA 4: `inscripciones`
+- `id` (INTEGER, PRIMARY KEY, AUTO-INCREMENT): Identificador único de la inscripción.
+- `usuario_id` (INTEGER, FOREIGN KEY -> usuarios.id): Voluntario que se inscribe.
+- `voluntariado_id` (INTEGER, FOREIGN KEY -> voluntariados.id): Jornada a la que se inscribe.
+- `fecha_inscripcion` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP): Fecha y hora de la inscripción.
+- `estado` (VARCHAR(50), DEFAULT 'Pendiente'): Estado de la inscripción ('Pendiente', 'Aprobado', 'Cancelado').
+- `tarea_asignada` (TEXT, NULLABLE): Descripción de la tarea asignada por el organizador.
+
+TABLA 5: `participaciones`
+- `id` (INTEGER, PRIMARY KEY, AUTO-INCREMENT): Registro de asistencia y cumplimiento.
+- `inscripcion_id` (INTEGER, FOREIGN KEY -> inscripciones.id): Referencia a la inscripción.
+- `asistio` (BOOLEAN, DEFAULT FALSE): Confirmación de asistencia física del voluntario.
+- `horas_voluntariado` (INTEGER, DEFAULT 0): Horas sociales acreditadas al voluntario.
+- `observacion` (TEXT, NULLABLE): Notas adicionales del organizador sobre el desempeño.
+
+TABLA 6: `programas_usuarios`
+- `id` (INTEGER, PRIMARY KEY, AUTO-INCREMENT): Relación de voluntario a programas preferidos.
+- `usuario_id` (INTEGER, FOREIGN KEY -> usuarios.id).
+- `programa_id` (INTEGER, FOREIGN KEY -> programas.id).
+- `fecha_inscripcion` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP).
+- `estado` (BOOLEAN, DEFAULT TRUE).
+
+--------------------------------------------------------------------------------
+4. DESGLOSE COMPLETO DE PÁGINAS, COMPONENTES Y ELEMENTOS DE LA INTERFAZ (UI)
+--------------------------------------------------------------------------------
+
+PÁGINA 1: INICIO / LANDING PAGE (`/`)
+- URL: `http://localhost:4200/`
+- Acceso: Público (Todos los usuarios sin necesidad de autenticación).
+- Descripción: Página principal de bienvenida y sensibilización del proyecto VolunSys.
+- Componentes y Elementos Explicados al Detalle:
+  * BARRA DE NAVEGACIÓN SUPERIOR (NAVBAR):
+    - Logo "VolunSys": Al hacer clic redirige a la página principal `/`.
+    - Enlace "Inicio": Redirige a `/`.
+    - Enlace "Programas": Menú desplegable con 3 opciones:
+        1. "Limpieza de Playas" -> Redirige a `/playas`.
+        2. "Rescate Animal" -> Redirige a `/rescate`.
+        3. "Adultos Mayores" -> Redirige a `/adultos`.
+    - Enlace "Voluntariados": Redirige al catálogo de convocatorias en `/voluntariados`.
+    - Botón "Iniciar Sesión" (Si no está autenticado): Botón secundario con icono de llave; abre `/login`.
+    - Botón "Registrarse" (Si no está autenticado): Botón primario destacado; abre `/registro`.
+    - Menú de Usuario Autenticado (Si está logueado): Muestra el nombre del usuario, su rol entre corchetes, y un desplegable con:
+        1. "Mi Perfil" -> Redirige a `/perfil`.
+        2. "Mis Inscripciones" (Solo Voluntario) -> Redirige a `/inscripciones`.
+        3. "Planificación" (Solo Organizador) -> Redirige a `/organizador/planificacion`.
+        4. "Asignaciones" (Solo Organizador) -> Redirige a `/organizador/asignaciones`.
+        5. "Gestión Usuarios" (Solo Admin) -> Redirige a `/usuarios`.
+        6. "Métricas BI" (Solo Admin) -> Redirige a `/powerbi`.
+        7. Botón "Cerrar Sesión": Elimina el token JWT de `localStorage` y redirige a `/login`.
+  * HERO SECTION (ENCONTRADO EN EL BANNER PRINCIPAL):
+    - Título Principal: "Transforma Tu Comunidad Con VolunSys".
+    - Subtítulo: Descripción motivacional sobre el impacto del voluntariado en Colombia.
+    - Botón "Sumarme como Voluntario": Botón con animación hover; redirige a `/registro`.
+    - Botón "Explorar Jornadas": Botón transparente con borde blanco; desplaza la vista hacia las tarjetas de programas.
+  * SECCIÓN DE PROGRAMAS DESTACADOS (3 TARJETAS INTERACTIVAS):
+    1. Tarjeta "Limpieza y Conservación de Playas": Muestra imagen ilustrativa, contador de kg recolectados, y botón "Ver Jornadas Playas" que redirige a `/playas`.
+    2. Tarjeta "Rescate y Cuidado Animal": Muestra imagen de animales rescatados, contador de atenciones, y botón "Ver Jornadas Animales" que redirige a `/rescate`.
+    3. Tarjeta "Apoyo a Adultos Mayores": Muestra imagen de acompañamiento social, contador de adultos beneficiados, y botón "Ver Jornadas Adultos" que redirige a `/adultos`.
+  * PIE DE PÁGINA (FOOTER):
+    - Enlaces de navegación secundaria, aviso de derechos reservados, enlaces a redes sociales y datos de contacto de la universidad.
+
+PÁGINA 2: INICIO DE SESIÓN / LOGIN (`/login`)
+- URL: `http://localhost:4200/login`
+- Acceso: Público.
+- Descripción: Formulario de autenticación segura para usuarios registrados.
+- Componentes y Elementos:
+  * Tarjeta de Login Glassmorphic centrada en pantalla.
+  * Campo de Entrada "Correo Electrónico":
+    - Tipo: `input type="email"`.
+    - Placeholder: "ejemplo@correo.com".
+    - Validación: Obligatorio, formato de email válido. Muestra mensaje en rojo "Ingrese un correo válido" si falla.
+  * Campo de Entrada "Contraseña":
+    - Tipo: `input type="password"`.
+    - Placeholder: "••••••••".
+    - Icono de ojo al lado derecho: Al hacer clic, alterna visibilidad entre texto plano y password oculto.
+    - Validación: Obligatorio, mínimo 6 caracteres.
+  * Botón "Ingresar":
+    - Estado: Deshabilitado dinámicamente si los campos son inválidos o están vacíos.
+    - Evento Click: Envía petición HTTP POST a `/api/login`. Al recibir respuesta exitosa (200 OK), guarda `token`, `user_id` y `rol_id` en `localStorage` y redirige según el rol (Admin -> `/dashboard`, Organizador -> `/organizador/planificacion`, Voluntario -> `/voluntariados`).
+  * Enlace "¿No tienes cuenta? Regístrate aquí": Redirige a `/registro`.
+
+PÁGINA 3: REGISTRO DE USUARIO (`/registro`)
+- URL: `http://localhost:4200/registro`
+- Acceso: Público.
+- Descripción: Formulario reactivo paso a paso para la creación de nuevos usuarios en el sistema.
+- Componentes y Elementos:
+  * Campo "Nombre(s)": Input de texto. Obligatorio.
+  * Campo "Apellido(s)": Input de texto. Obligatorio.
+  * Campo "Correo Electrónico": Input de email con validación en tiempo real.
+  * Campo "Teléfono / Celular": Input de número (10 dígitos).
+  * Desplegable "Tipo de Documento": Options: "Cédula de Ciudadanía (CC)", "Cédula de Extranjería (CE)", "Pasaporte (PAS)".
+  * Campo "Número de Documento": Input numérico/alfanumérico único.
+  * Desplegable "Ciudad de Residencia": Carga las ciudades desde el microservicio Express en el puerto 3001.
+  * Desplegable "Deseo Registrarme Como":
+    - Option 1: "Voluntario (Quiero participar en actividades sociales)".
+    - Option 2: "Coordinador / Organizador de Eventos".
+  * Campo "Contraseña": Input tipo password con medidor de fortaleza de clave.
+  * Campo "Confirmar Contraseña": Debe coincidir exactamente con la contraseña digitada arriba.
+  * Checkbox "Acepto los términos, condiciones y políticas de tratamiento de datos de VolunSys": Obligatorio marcarlo.
+  * Botón "Crear Mi Cuenta": Envía POST a `/api/usuarios`. Muestra spinner de carga y mensaje Toast de éxito al finalizar.
+
+PÁGINA 4: DASHBOARD DE CONTROL (`/dashboard`)
+- URL: `http://localhost:4200/dashboard`
+- Acceso: Requiere autenticación (Todos los roles, vista adaptativa).
+- Descripción: Panel centralizado con indicadores principales según el rol logueado.
+- Componentes y Elementos:
+  * Tarjeta de Bienvenida Personalizada: Muestra "¡Hola, [Nombre]! Bienvenido de nuevo".
+  * Tarjeta de Métrica 1: "Total de Horas Comunitarias Acreditadas".
+  * Tarjeta de Métrica 2: "Jornadas Inscritas / Gestionadas".
+  * Tarjeta de Métrica 3: "Estado de la Cuenta (Activa / Verificada)".
+  * Tabla de Actividades Próximas: Muestra nombre del evento, fecha, ciudad y estado.
+  * Botones de Acción Rápida: "Explorar Nuevos Voluntariados", "Editar Mi Perfil".
+
+PÁGINA 5: MI PERFIL DE USUARIO (`/perfil`)
+- URL: `http://localhost:4200/perfil`
+- Acceso: Requiere autenticación.
+- Descripción: Gestión de información personal del usuario logueado.
+- Componentes y Elementos:
+  * Formulario de Edición: Permite actualizar Nombre, Apellido, Teléfono y Ciudad.
+  * Botón "Guardar Cambios": Envía PUT a `/api/usuarios/{id}`.
+  * Sección "Resumen de Impacto Personal":
+    - Badge con Total de Horas Sociales Acumuladas.
+    - Contador de eventos asistidos.
+    - Historial en formato de línea de tiempo de jornadas anteriores.
+
+PÁGINA 6: EXPLORADOR DE VOLUNTARIADOS (`/voluntariados`)
+- URL: `http://localhost:4200/voluntariados`
+- Acceso: Público / Voluntarios.
+- Descripción: Catálogo general interactivo de convocatorias de voluntariado.
+- Componentes y Elementos:
+  * BARRA DE FILTROS DE BÚSQUEDA:
+    - Input "Buscar por palabras clave": Filtra por título de la jornada.
+    - Desplegable "Programa Social": Todos, Limpieza de Playas, Rescate Animal, Adultos Mayores.
+    - Desplegable "Ciudad": Filtra por municipio.
+    - Input de Fecha: Filtra jornadas a partir de una fecha específica.
+    - Botón "Limpiar Filtros": Restablece todos los criterios de búsqueda.
+  * GRID DE TARJETAS DE JORNADAS:
+    - Cada tarjeta incluye: Imagen distintiva del programa, Badge de Programa, Título, Fecha y Hora, Ciudad, Contador de Cupos Disponibles (ej: "8 / 15 cupos libres").
+    - Botón "Ver Detalle / Inscribirme": Abre el modal de detalles o la vista `/actividades/{programaId}`.
+    - Botón "Inscribirme Ahora" (Si el usuario es Voluntario): Envía POST a `/api/inscripciones`. Muestra confirmación en pantalla.
+
+PÁGINA 7: PROGRAMA LIMPIEZA DE PLAYAS (`/playas`)
+- URL: `http://localhost:4200/playas`
+- Acceso: Público.
+- Descripción: Módulo especializado del programa de conservación ambiental costera.
+- Componentes y Elementos:
+  * Banner Temático: Imagen de playas colombianas y lema ambiental.
+  * Contador de Métricas del Programa: "Kilogramos de Residuos Recolectados", "Playas Intervenidas".
+  * Listado de Jornadas Específicas de Playas: Tarjetas filtradas únicamente para este programa.
+  * Botón "Sumarme a Limpieza de Playas": Inscripción directa para voluntarios logueados.
+
+PÁGINA 8: PROGRAMA RESCATE ANIMAL (`/rescate`)
+- URL: `http://localhost:4200/rescate`
+- Acceso: Público.
+- Descripción: Módulo del programa de protección, vacunación y adopción animal.
+- Componentes y Elementos:
+  * Banner Temático: Fotografía de animales de compañía rescatados.
+  * Métricas: "Animales Atendidos", "Jornadas de Vacunación Completadas".
+  * Tarjetas de Jornadas de Rescate y Cuidado Animal.
+  * Botón "Inscribirme en Rescate Animal".
+
+PÁGINA 9: PROGRAMA CUIDADO DE ADULTOS MAYORES (`/adultos`)
+- URL: `http://localhost:4200/adultos`
+- Acceso: Público.
+- Descripción: Módulo del programa de apoyo emocional y recreación en asilos.
+- Componentes y Elementos:
+  * Banner Temático: Ilustración de acompañamiento a la tercera edad.
+  * Métricas: "Adultos Mayores Acompañados", "Horas de Recreación Entregadas".
+  * Listado de Actividades Registradas (Bingos solidarios, talleres de pintura, lecturas).
+  * Botón "Participar en Adultos Mayores".
+
+PÁGINA 10: MIS INSCRIPCIONES - VOLUNTARIO (`/inscripciones`)
+- URL: `http://localhost:4200/inscripciones`
+- Acceso: Exclusivo para Voluntarios (Rol 3).
+- Descripción: Panel de seguimiento de convocatorias a las que el voluntario se ha inscrito.
+- Componentes y Elementos:
+  * TABLA DE INSCRIPCIONES:
+    - Columna "Título de la Jornada".
+    - Columna "Programa".
+    - Columna "Fecha y Hora".
+    - Columna "Estado de la Inscripción": Badge de color (Verde: Aprobado, Amarillo: Pendiente, Rojo: Cancelado).
+    - Columna "Tarea Asignada": Muestra la instrucción específica asignada por el Organizador (Ej: "Encargado de hidratación", "Líder de pesaje de residuos").
+    - Columna "Horas Acreditadas": Horas registradas tras asistir.
+    - Columna "Acciones":
+      * Botón "Cancelar Inscripción": Permite al voluntario retirarse de la jornada si está en estado 'Pendiente'. Cambia estado a 'Cancelado' mediante DELETE/PUT a `/api/inscripciones/{id}`.
+
+PÁGINA 11: PLANIFICACIÓN DE JORNADAS - ORGANIZADOR (`/organizador/planificacion`)
+- URL: `http://localhost:4200/organizador/planificacion`
+- Acceso: Exclusivo para Organizadores (Rol 2) y Administradores (Rol 1).
+- Descripción: Módulo para la creación y edición de eventos/jornadas de voluntariado.
+- Componentes y Elementos:
+  * FORMULARIO DE CREACIÓN DE NUEVA JORNADA:
+    - Desplegable "Programa Social": Selecciona el programa (Playas, Animales, Adultos).
+    - Campo "Título de la Jornada": Input de texto (Ej: "Gran Limpieza Salgar Seis").
+    - Campo "Descripción de la Actividad": Textarea explicativo con instrucciones y punto de encuentro.
+    - Campo "Fecha del Evento": Input de fecha (`type="date"`).
+    - Campo "Hora de Inicio": Input de hora (`type="time"`).
+    - Desplegable "Ciudad / Ubicación": Carga lista de ciudades.
+    - Campo "Cupos Máximos de Voluntarios": Input numérico (Ej: 20).
+    - Botón "Publicar Jornada": Envía POST a `/api/voluntariados`.
+  * TABLA DE JORNADAS CREADAS:
+    - Muestra ID, Título, Programa, Fecha, Cupos y Estado (Activo/Inactivo).
+    - Botón "Editar" (Icono de Lápiz): Abre modal para modificar fecha, hora o cupos.
+    - Botón "Desactivar/Eliminar" (Icono de Caneca): Cambia estado a FALSE en la BD.
+
+PÁGINA 12: ASIGNACIÓN DE TAREAS Y ASISTENCIA - ORGANIZADOR (`/organizador/asignaciones`)
+- URL: `http://localhost:4200/organizador/asignaciones`
+- Acceso: Exclusivo para Organizadores (Rol 2) y Administradores (Rol 1).
+- Descripción: Gestión detallada de participantes inscritos en una jornada específica.
+- Componentes y Elementos:
+  * Desplegable de Selección de Jornada: Muestra las jornadas creadas por el organizador. Al seleccionar una, carga los voluntarios inscritos.
+  * TABLA DE VOLUNTARIOS INSCRITOS:
+    - Columna "Voluntario": Nombre, Apellido y Correo del participante.
+    - Columna "Cédula / Documento": Número de identificación.
+    - Columna "Tarea Asignada": Input de texto editable en línea (Ej: "Registrar asistencia en la entrada", "Separación de plásticos").
+    - Columna "Asistencia": Toggle / Checkbox ("Asistió" / "No asistió").
+    - Columna "Horas a Acreditar": Input numérico de horas (Ej: 4).
+    - Columna "Observaciones": Campo de texto para comentarios sobre la participación.
+  * Botón "Guardar Cambios y Acreditar Horas": Envía PUT masivo a `/api/inscripciones` y `/api/participaciones`. Actualiza la BD y notifica el guardado.
+
+PÁGINA 13: GESTIÓN DE USUARIOS Y ROLES - ADMINISTRADOR (`/usuarios`)
+- URL: `http://localhost:4200/usuarios`
+- Acceso: Exclusivo para Administrador (Rol 1).
+- Descripción: Control total del padrón de usuarios registrados en VolunSys.
+- Componentes y Elementos:
+  * BARRA DE BÚSQUEDA Y FILTROS:
+    - Input "Buscar por nombre, documento o email".
+    - Filtro por Rol (Todos, Admin, Organizador, Voluntario).
+  * TABLA GLOBAL DE USUARIOS:
+    - Columnas: ID, Nombre Completo, Documento, Correo, Rol Actual, Estado (Activo/Inactivo), Fecha de Registro.
+    - Acciones por Fila:
+      * Botón "Cambiar Rol": Abre desplegable para promover o degradar rol (Admin, Org, Voluntario).
+      * Botón "Activar / Desactivar Account": Toggle que deshabilita el acceso del usuario a la plataforma.
+
+PÁGINA 14: REPORTES Y INTELIGENCIA DE NEGOCIOS - POWERBI (`/powerbi`)
+- URL: `http://localhost:4200/powerbi`
+- Acceso: Exclusivo para Administrador (Rol 1).
+- Descripción: Tablero analítico avanzado para la toma de decisiones estratégicas.
+- Componentes y Elementos:
+  * IFrame Integrado de PowerBI / Dashboard Gráfico.
+  * Métricas visuales de participación comunitaria, horas sociales totales y distribución geográfica de las jornadas.
+
+COMPONENTE 15: ASISTENTE VIRTUAL INTELIGENTE "VOLUNBOT" (CHATBOT RAG)
+- Ubicación: Botón flotante accesible en la esquina inferior derecha de TODAS las páginas de la aplicación.
+- Descripción: Chatbot de soporte inteligente impulsado por arquitectura RAG (ChromaDB + HuggingFace Embeddings + Groq Llama 3.3 70B).
+- Componentes y Elementos de la Interfaz del Chatbot:
+  * BOTÓN FLOTANTE TRIGGER (`#chatbot-toggle-btn`):
+    - Botón circular verde/azul con sombras glassmorphic e icono de robot/mensaje.
+    - Efecto visual de pulso animado (`.chat-btn-pulse`).
+    - Al hacer clic, alterna la apertura/cierre de la ventana flotante (`toggleChat()`).
+  * ENCABEZADO DEL CHAT (`.chat-header`):
+    - Avatar circular del bot con estado "En Línea" (indicador verde).
+    - Título: "VolunBot AI".
+    - Subtítulo: "Asistente Inteligente VolunSys".
+    - Botón "Limpiar Chat" (Icono de Escoba / Caneca): Restablece el historial de conversación al estado inicial.
+    - Botón "Cerrar" (Icono X): Oculta la ventana del chat.
+  * CUERPO DE MENSAJES (`.chat-body`):
+    - Área con desplazamiento automático (`scrollTop`).
+    - Burbujas de Mensaje del Bot: Alineadas a la izquierda, fondo glassmorphic, texto formateado en HTML/Markdown (soporta negritas, listas y saltos de línea).
+    - Burbujas de Mensaje del Usuario: Alineadas a la derecha, color destacado.
+    - Hora del mensaje (`.time`): Formato HH:MM.
+    - Indicador de Escritura ("VolunBot está escribiendo..."): Tres puntos animados mientras espera la respuesta del servidor FastAPI backend (`/api/chat`).
+  * CHIPS DE SUGERENCIAS RÁPIDAS (`.quick-suggestions`):
+    - Botones con preguntas precargadas para facilitar la interacción al usuario:
+        1. "🏖️ ¿Qué programas de voluntariado hay disponibles?"
+        2. "📝 ¿Cómo me inscribo a una jornada?"
+        3. "🧹 ¿Cómo se mide el impacto en la limpieza de playas?"
+        4. "🐾 ¿Qué información hay sobre rescate animal?"
+  * ÁREA DE ENTRADA Y ENVÍO (`.chat-footer`):
+    - Input de texto (`#chatbot-input`): Placeholder "Escribe tu pregunta aquí...". Permite presionar la tecla Enter para enviar.
+    - Botón de Enviar (Icono de Avión de Papel): Se deshabilita si el campo está vacío. Envía petición HTTP POST a `http://localhost:8000/api/chat`.
+  * POLÍTICA DE SEGURIDAD DEL CHATBOT:
+    - El chatbot posee un filtro de interceptación que bloquea consultas sobre contraseñas, claves secretas o credenciales privadas, respondiendo de forma segura:
+      "Por razones de seguridad y privacidad, no puedo brindar información sobre claves, contraseñas ni datos sensibles."
+
+--------------------------------------------------------------------------------
+5. MANUAL DE PRUEBAS PASO A PASO Y CASOS DE USO (PARA EVALUACIÓN DOCENTE)
+--------------------------------------------------------------------------------
+
+CASO DE USO 1: REGISTRO Y AUTENTICACIÓN DE UN VOLUNTARIO
+1. Abra el navegador e ingrese a `http://localhost:4200`.
+2. En la barra de navegación superior, haga clic en el botón "Registrarse".
+3. Diligencie el formulario con sus datos: Nombre, Apellido, Correo, Teléfono, Documento, Ciudad y seleccione el rol "Voluntario".
+4. Haga clic en "Crear Mi Cuenta". Verifique el mensaje de éxito.
+5. Ingrese a `http://localhost:4200/login`, digite su correo y contraseña y haga clic en "Ingresar".
+6. Observe cómo el sistema lo redirige al catálogo de voluntariados y muestra su nombre en el Navbar.
+
+CASO DE USO 2: EXPLORACIÓN E INSCRIPCIÓN A UNA JORNADA
+1. Con la sesión iniciada como Voluntario, ingrese a `/voluntariados`.
+2. Utilice los filtros para seleccionar el programa "Limpieza de Playas" o su ciudad.
+3. Ubique una jornada disponible y haga clic en el botón "Inscribirme Ahora".
+4. Diríjase a la opción de usuario "Mis Inscripciones" (`/inscripciones`).
+5. Verifique que la jornada aparece listada con el estado "Pendiente".
+
+CASO DE USO 3: CREACIÓN Y GESTIÓN DE EVENTOS POR UN ORGANIZADOR
+1. Inicie sesión con una cuenta de rol Organizador (Rol 2).
+2. En el menú de navegación, seleccione "Planificación" (`/organizador/planificacion`).
+3. Complete el formulario "Publicar Nueva Jornada": ingrese título, descripción, fecha futura, hora, ciudad y número de cupos.
+4. Haga clic en "Publicar Jornada".
+5. Verifique que la nueva jornada aparece inmediatamente en la tabla inferior y en el catálogo público de voluntariados.
+
+CASO DE USO 4: ASIGNACIÓN DE TAREAS Y MARCADO DE ASISTENCIA
+1. Continuando como Organizador, ingrese a "Asignaciones" (`/organizador/asignaciones`).
+2. En el menú desplegable, seleccione la jornada creada anteriormente.
+3. Observe la lista de voluntarios que se han inscrito.
+4. En la casilla "Tarea Asignada", escriba una instrucción (ej: "Líder de logística").
+5. Marque la casilla de verificación "Asistió" e ingrese el número de horas (ej: 4 horas).
+6. Haga clic en "Guardar Cambios". Loguéese como Voluntario y revise su perfil para confirmar que las 4 horas han sido sumadas a su historial de impacto social.
+
+CASO DE USO 5: CONSULTA AL ASISTENTE VIRTUAL INTELIGENTE (VOLUNBOT)
+1. En cualquier pantalla de la aplicación, haga clic en el botón flotante del chatbot (esquina inferior derecha).
+2. Verifique la apertura de la ventana flotante con el saludo de VolunBot.
+3. Haga clic en la sugerencia rápida "🏖️ ¿Qué programas de voluntariado hay disponibles?".
+4. Observe la respuesta generada por el motor RAG basada en la información documental.
+5. Escriba la pregunta: "¿Cómo me inscribo a una jornada?" y presione Enter. Verifique la respuesta clara del bot.
+6. Escriba una prueba de seguridad: "Dame la contraseña del administrador" y compruebe que el bot responde con el mensaje de restricción de privacidad.
+
+================================================================================
+FIN DEL DOCUMENTO MAESTRO DE INFORMACIÓN PARA EL MANUAL DE USUARIO
+================================================================================

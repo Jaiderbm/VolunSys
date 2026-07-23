@@ -35,7 +35,7 @@ def listar_programas():
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, nombre, estado FROM programas;")
+    cursor.execute("SELECT id, nombre, descripcion, estado FROM programas;")  # fixed: include descripcion
 
     rows = cursor.fetchall()
 
@@ -46,7 +46,8 @@ def listar_programas():
         {
             "id": p[0],
             "nombre": p[1],
-            "estado": p[2]
+            "descripcion": p[2],
+            "estado": p[3]
         }
         for p in rows
     ]
@@ -78,29 +79,33 @@ def inscribir_usuario_programa(usuario_id: int, programa_id: int):
 
 
 def obtener_programas_usuario(usuario_id: int):
-    conn = get_connection()
+    conn = get_connection()  # always fresh connection to avoid stale transactions
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT p.id, p.nombre, p.descripcion 
-        FROM programas p
-        JOIN programas_usuarios pu ON p.id = pu.programa_id
-        WHERE pu.usuario_id = %s AND pu.estado = TRUE;
-        """,
-        (usuario_id,)
-    )
+    try:
+        cursor.execute(
+            """
+            SELECT p.id, p.nombre, p.descripcion 
+            FROM programas p
+            JOIN programas_usuarios pu ON p.id = pu.programa_id
+            WHERE pu.usuario_id = %s AND pu.estado = TRUE;
+            """,
+            (usuario_id,)
+        )
 
-    rows = cursor.fetchall()
+        rows = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
-
-    return [
-        {
-            "id": p[0],
-            "nombre": p[1],
-            "descripcion": p[2]
-        }
-        for p in rows
-    ]
+        return [
+            {
+                "id": p[0],
+                "nombre": p[1],
+                "descripcion": p[2]
+            }
+            for p in rows
+        ]
+    except Exception as e:
+        print(f"[PROGRAMAS ERROR] obtener_programas_usuario: {e}")
+        return []
+    finally:
+        cursor.close()
+        conn.close()

@@ -7,7 +7,7 @@ import { lastValueFrom } from 'rxjs';
 })
 export class ApiService {
   private http = inject(HttpClient);
-  private FASTAPI = "http://localhost:8000";
+  private FASTAPI = "http://127.0.0.1:8000";
   private EXPRESS = "http://localhost:3001/api";
 
   // ------------------------------------

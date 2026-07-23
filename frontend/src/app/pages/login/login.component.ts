@@ -29,8 +29,9 @@ export class LoginComponent {
         localStorage.setItem("token", res.access_token);
         localStorage.setItem("rol", res.rol);
         localStorage.setItem("usuario", res.usuario);
-        localStorage.setItem("usuarioId", res.usuarioId || res.usuario);
+        localStorage.setItem("usuarioId", String(res.usuarioId));  // always use the numeric ID
         this.router.navigate(['/dashboard']);
+
       } else {
         this.error = res.message || "Credenciales incorrectas.";
       }

@@ -24,10 +24,13 @@ export class VoluntariadosComponent implements OnInit {
   }
 
   async loadData() {
+    this.loading = true;
+    this.error = "";
     try {
-      const rawUser = localStorage.getItem("usuario");
-      if (rawUser) {
-        this.usuarioId = localStorage.getItem("usuarioId") || "1";
+      // Get the numeric user ID stored during login
+      const rawId = typeof window !== 'undefined' ? localStorage.getItem("usuarioId") : null;
+      if (rawId && rawId !== "null" && rawId !== "undefined") {
+        this.usuarioId = rawId;
       }
 
       const data = await this.apiService.getProgramas();
@@ -36,17 +39,23 @@ export class VoluntariadosComponent implements OnInit {
       }
 
       if (this.usuarioId) {
-        const misProgs = await this.apiService.getMisProgramas(this.usuarioId);
-        if (Array.isArray(misProgs)) {
-          this.misProgramasIds = misProgs.map((p: any) => p.id);
+        try {
+          const misProgs = await this.apiService.getMisProgramas(this.usuarioId);
+          if (Array.isArray(misProgs)) {
+            this.misProgramasIds = misProgs.map((p: any) => p.id);
+          }
+        } catch (e) {
+          console.warn("No se pudieron obtener mis programas:", e);
         }
       }
     } catch (err) {
-      this.error = "Error al cargar programas.";
+      console.error("Error al cargar programas:", err);
+      this.error = "No se pudieron cargar los programas de voluntariado. Verifica la conexión con el servidor.";
     } finally {
       this.loading = false;
     }
   }
+
 
   async participio(programaId: number) {
     if (!this.usuarioId) {
